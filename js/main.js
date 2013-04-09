@@ -6,5 +6,5 @@ var instructionSiteFeatures = "width=440,height="+height+",left=1000";
 
 $("#launch").click(function() {
   window.open("http://facebook.com","", challengeSiteFeatures);
-  window.open("facebook_instructions.html","", instructionSiteFeatures);
+  window.open("http://ondrae.github.io/howtocity/facebook_instructions.html","", instructionSiteFeatures);
 });
