@@ -4,9 +4,20 @@
    Author's custom styles
    ========================================================================== */
 
+#link1{
+	height: 900px;
+}
+#link2{
+	height: 900px;
+}
+#link3{
+	height: 900px;
+}
 
-
-
+section{
+	padding-top:60px;
+	margin-top:60px;
+}
 
 
 

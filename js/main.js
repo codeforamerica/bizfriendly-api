@@ -1,10 +1,28 @@
 var width = window.screen.width;
 var height = window.screen.height;
 
-var challengeSiteFeatures = "width=1000,height="+height;
-var instructionSiteFeatures = "width=440,height="+height+",left=1000";
+var challengeSiteFeatures = {
+	height: height,
+    width: width*0.695,
+    center:false
+}
+
+var instructionSiteFeatures = {
+	height: height,
+    width: width*0.305,
+    left: width*0.695,
+    center:false,
+    name: 'How To City: Promotoe Your Business Online', // specify custom name for window (overrides createNew option)
+}
 
 $("#launch").click(function() {
-  window.open("http://facebook.com","", challengeSiteFeatures);
-  window.open("http://ondrae.github.io/howtocity/facebook_instructions.html","", instructionSiteFeatures);
+  $.popupWindow('http://facebook.com', challengeSiteFeatures);
+  $.popupWindow('facebook_instructions.html', instructionSiteFeatures);
 });
+
+ $('.navbar ul li a').bind('click', function(e) {
+           e.preventDefault();
+           $('html, body').animate({ scrollTop: $(this.hash).offset().top }, 300);
+
+           // edit: Opera requires the "html" elm. animated
+        });
