@@ -18,8 +18,11 @@ var instructionSiteFeatures = {
 }
 
 $("#launch").click(function() {
-  $.popupWindow('http://facebook.com', challengeSiteFeatures);
   $.popupWindow('facebook_instructions.html', instructionSiteFeatures);
+});
+
+$("#fb_pages").click(function() {
+  $.popupWindow('https://www.facebook.com/pages/create/', challengeSiteFeatures);
 });
 
  $('.navbar ul li a').bind('click', function(e) {
