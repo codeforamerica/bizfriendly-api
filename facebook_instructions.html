@@ -38,6 +38,7 @@
                         if (response.authResponse) {
                             // connected
                             testAPI();
+                            getLoginStatus();
 
                         } else {
                             // cancelled
@@ -52,7 +53,7 @@
                     });
                 }
 
-                FB.getLoginStatus(function(response) {
+                var getLoginStatus = FB.getLoginStatus(function(response) {
                   if (response.status === 'connected') {
                     // connected
                     console.log('Connected');
@@ -67,6 +68,8 @@
                     login();
                   }
                  });
+
+                getLoginStatus();
 
                 // Additional init code here
 
