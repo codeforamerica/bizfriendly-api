@@ -57,8 +57,8 @@
                   if (response.status === 'connected') {
                     // connected
                     console.log('Connected');
-                    $('#link1').html('<h2>You\'re already logged into Facebook.</h2>');
-                    $('html, body').delay(800).animate({ scrollTop: $('#link2').offset().top }, 1000);
+                    $('#link1').delay(1000).html('<h2>You\'re already logged into Facebook.</h2>');
+                    $('html, body').delay(1000).animate({ scrollTop: $('#link2').offset().top }, 1000);
                   } else if (response.status === 'not_authorized') {
                     // not_authorized
                     console.log('not_authorized');
