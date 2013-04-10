@@ -38,7 +38,7 @@
                         if (response.authResponse) {
                             // connected
                             testAPI();
-                            getLoginStatus();
+                            FB.getLoginStatus;
 
                         } else {
                             // cancelled
@@ -53,10 +53,11 @@
                     });
                 }
 
-                var getLoginStatus = FB.getLoginStatus(function(response) {
+                FB.getLoginStatus(function(response) {
                   if (response.status === 'connected') {
                     // connected
                     console.log('Connected');
+                    $('link1').html('<h2>You\'re already logged into Facebook.</h2>');
                     $('html, body').animate({ scrollTop: $('#link2').offset().top }, 300);
                   } else if (response.status === 'not_authorized') {
                     // not_authorized
@@ -69,7 +70,6 @@
                   }
                  });
 
-                getLoginStatus();
 
                 // Additional init code here
 
