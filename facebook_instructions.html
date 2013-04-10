@@ -56,6 +56,7 @@
                   if (response.status === 'connected') {
                     // connected
                     console.log('Connected');
+                    $('html, body').animate({ scrollTop: $('#link2').offset().top }, 300);
                   } else if (response.status === 'not_authorized') {
                     // not_authorized
                     console.log('not_authorized');
