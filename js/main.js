@@ -7,6 +7,7 @@ var challengeSiteFeatures = {
     center:false,
     name:'challenge'
 }
+console.log(challengeSiteFeatures);
 
 var instructionSiteFeatures = {
 	height: height,
