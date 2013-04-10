@@ -4,7 +4,8 @@ var height = window.screen.height;
 var challengeSiteFeatures = {
 	height: height,
     width: width*0.695,
-    center:false
+    center:false,
+    name:'challenge'
 }
 
 var instructionSiteFeatures = {
