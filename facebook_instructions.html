@@ -33,6 +33,31 @@
                   xfbml      : true  // parse XFBML
                 });
 
+                function login() {
+                    FB.login(function(response) {
+                        if (response.authResponse) {
+                            // connected
+                        } else {
+                            // cancelled
+                        }
+                    });
+                }
+
+                FB.getLoginStatus(function(response) {
+                  if (response.status === 'connected') {
+                    // connected
+                    console.log('Connected');
+                  } else if (response.status === 'not_authorized') {
+                    // not_authorized
+                    console.log('not_authorized');
+                    login();
+                  } else {
+                    // not_logged_in
+                    console.log('not_logged_in');
+                    login();
+                  }
+                 });
+
                 // Additional init code here
 
               };
