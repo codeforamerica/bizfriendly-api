@@ -26,3 +26,14 @@ $("#launch").click(function() {
 
            // edit: Opera requires the "html" elm. animated
         });
+
+var next;
+$('.next').click(function() {
+   if ( next === undefined ) {
+     next = $('section')
+     console.log(next);
+   } else {
+      next = next.next();
+   }
+   $('html, body').animate({ scrollTop: next.offset().top }, 300);
+});
