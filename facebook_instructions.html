@@ -22,68 +22,9 @@
         </div>
         <div class="container">
         <div id="fb-root"></div>
-            <script>
-              // Additional JS functions here
-              window.fbAsyncInit = function() {
-                FB.init({
-                  appId      : '158953284268352', // App ID
-                  channelUrl : 'http://ondrae.github.io/howtocity/channel.html', // Channel File
-                  status     : true, // check login status
-                  cookie     : true, // enable cookies to allow the server to access the session
-                  xfbml      : true  // parse XFBML
-                });
+        
+            <1>How to: Promote Your Business Online</1>
 
-                function login() {
-                    FB.login(function(response) {
-                        if (response.authResponse) {
-                            // connected
-                            testAPI();
-                            FB.getLoginStatus;
-
-                        } else {
-                            // cancelled
-                        }
-                    });
-                }
-
-                function testAPI() {
-                    console.log('Welcome!  Fetching your information.... ');
-                    FB.api('/me', function(response) {
-                        console.log('Good to see you, ' + response.name + '.');
-                    });
-                }
-
-                FB.getLoginStatus(function(response) {
-                  if (response.status === 'connected') {
-                    // connected
-                    console.log('Connected');
-                    $('#link1').delay(1000).html('<h2>You\'re already logged into Facebook.</h2>');
-                    $('html, body').delay(1000).animate({ scrollTop: $('#link2').offset().top }, 1000);
-                  } else if (response.status === 'not_authorized') {
-                    // not_authorized
-                    console.log('not_authorized');
-                    login();
-                  } else {
-                    // not_logged_in
-                    console.log('not_logged_in');
-                    login();
-                  }
-                 });
-
-
-                // Additional init code here
-
-              };
-
-              // Load the SDK Asynchronously
-              (function(d){
-                 var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
-                 if (d.getElementById(id)) {return;}
-                 js = d.createElement('script'); js.id = id; js.async = true;
-                 js.src = "//connect.facebook.net/en_US/all.js";
-                 ref.parentNode.insertBefore(js, ref);
-               }(document));
-            </script>
         <section id="link1">
             <h2>1. Sign into FB!</h2>
         </section>
