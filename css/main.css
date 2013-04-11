@@ -3,6 +3,29 @@
 /* ==========================================================================
    Author's custom styles
    ========================================================================== */
+body{
+}
+
+.narrow{
+	width:420px;
+}
+
+.inst_header{
+	
+}
+
+.progress .bar {
+	width: 0%;
+}
+
+.inst_header{
+	position: fixed;
+	top:30px;
+	width:100%;
+	background-color: #F2F2F2;
+	display:block;
+}
+
 #link1{
 	height: 900px;
 }
@@ -14,12 +37,11 @@
 }
 
 section{
-	padding-top:60px;
-	margin-top:60px;
+	margin-top:200px;
 }
 
 .next{
-	float: right;
+	position: fixed; bottom:5px;left:80%;
 }
 
 

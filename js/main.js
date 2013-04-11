@@ -35,12 +35,12 @@ $("#fb_pages").click(function() {
 var next;
 $('.next').click(function() {
    if ( next === undefined ) {
-     next = $('section')
+     next = $('section').next();
      console.log(next);
    } else {
       next = next.next();
    }
-   $('html, body').animate({ scrollTop: next.offset().top }, 300);
+   $('html, body').animate({ scrollTop: next.offset().top - 200 }, 300);
 });
 
               // Additional JS functions here
@@ -103,4 +103,13 @@ $('.next').click(function() {
                  js.src = "//connect.facebook.net/en_US/all.js";
                  ref.parentNode.insertBefore(js, ref);
                }(document));
-              
+
+              $(document).scroll(function(){
+              var theDistance =  $(window).scrollTop(),
+                    theHeight = $(document).height(),
+                heightPercent = theDistance/theHeight*100;
+
+                console.log(Math.ceil(heightPercent));
+                $('.bar').css('width',Math.ceil(heightPercent)+'%');
+
+              });
