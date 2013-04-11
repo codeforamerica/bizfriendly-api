@@ -40,7 +40,7 @@ $('.next').click(function() {
    } else {
       next = next.next();
    }
-   $('html, body').animate({ scrollTop: next.offset().top - 200 }, 300);
+   $('html, body').animate({ scrollTop: next.offset().top }, 300);
 });
 
               // Additional JS functions here
