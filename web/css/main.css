@@ -1,21 +1,19 @@
-
-
 /* ==========================================================================
    Author's custom styles
    ========================================================================== */
 body{
+	padding-top:60px;
 }
+
 
 .narrow{
-	width:420px;
-}
-
-.inst_header{
-	
+	width:415px;
+	padding-left:10px;
+	padding-right:10px;
 }
 
 .progress .bar {
-	width: 0%;
+	width: 5.5%;
 }
 
 .inst_header{
@@ -25,24 +23,26 @@ body{
 	background-color: #F2F2F2;
 	display:block;
 }
-
-#link1{
-	height: 900px;
-}
-#link2{
-	height: 900px;
-}
-#link3{
-	height: 900px;
-}
-
 section{
-	margin-top:200px;
+	padding-top:130px;
+	height:900px;
 }
 
 .next{
 	position: fixed; bottom:5px;left:80%;
 }
+
+.tester{
+	position: fixed; bottom:50px;left:80%;
+}
+
+#link1{
+	padding-top:60px;
+}
+/*
+#hidden-nav a:active{
+	background-color: black;
+}*/
 
 
 

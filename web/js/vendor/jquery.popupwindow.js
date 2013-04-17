@@ -48,9 +48,6 @@
         var random = new Date().getTime();
         var name = options.name || (options.createNew ? 'popup_window_' + random : 'popup_window');
         var win = window.open(url, name, params.join(','));
-
-        console.log(params);
-
         // unload handler
         if (options.onUnload && typeof options.onUnload === 'function') {
             var unloadInterval = setInterval(function() {
