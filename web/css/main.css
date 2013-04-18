@@ -2,9 +2,8 @@
    Author's custom styles
    ========================================================================== */
 body{
-	padding-top:60px;
+	padding-top:140px;
 }
-
 
 .narrow{
 	width:415px;
@@ -24,21 +23,17 @@ body{
 	display:block;
 }
 section{
-	padding-top:130px;
 	height:900px;
 }
 
 .next{
-	position: fixed; bottom:5px;left:80%;
+	position: fixed; bottom:5px;right:10px;
 }
 
-.tester{
-	position: fixed; bottom:50px;left:80%;
+.back{
+	position: fixed; bottom:5px;
 }
 
-#link1{
-	padding-top:60px;
-}
 /*
 #hidden-nav a:active{
 	background-color: black;

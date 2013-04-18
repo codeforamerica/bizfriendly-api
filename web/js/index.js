@@ -14,10 +14,16 @@ var instructionSiteFeatures = {
   left: width*0.695,
   name: 'instructions', // specify custom name for window (overrides createNew option)
   center: false,
-  scrollbars: false, // safari always adds scrollbars
+  // scrollbars: false, // safari always adds scrollbars
 }
 
 $("#launch").click(function() {
   var challengeWindow = $.popupWindow('http://facebook.com', challengeSiteFeatures);
   var instructionsWindow = $.popupWindow('fb_page_instructions.html', instructionSiteFeatures);
+
+  // instructionsWindow.onblur = setTimeout(function(){
+  //   $.popupWindow('fb_page_instructions.html#link2', instructionSiteFeatures);
+  //   instructionsWindow.onblur = '';
+  // }, 2000);
+
 });
