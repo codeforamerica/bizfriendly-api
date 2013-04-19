@@ -75,6 +75,9 @@ var fbLoginStatus = function(){
       fbLogin();
     } else {
       // the user isn't logged in to Facebook.
+      if (debug){
+        console.log('Not logged in.')
+      }
       fbLogin();
     }
   });
@@ -84,7 +87,7 @@ var fbLoginStatus = function(){
 window.fbAsyncInit = function() {
   FB.init({
     appId      : '158953284268352', // App ID from the app dashboard
-    channelUrl : 'channel.html', // Channel file for x-domain comms
+    channelUrl : 'ondrae.github.io/howtocity/web/channel.html', // Channel file for x-domain comms
     status     : true,              // Check Facebook Login status
     //cookie     : true, // enable cookies to allow the server to access the session
     xfbml      : true  // parse XFBML
