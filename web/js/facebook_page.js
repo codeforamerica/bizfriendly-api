@@ -66,11 +66,6 @@ var fbLoginStatus = function(){
       // var uid = response.authResponse.userID;
       // var accessToken = response.authResponse.accessToken;
 
-      // Important for step 4
-      FB.api('/me/accounts/', function(response) {
-        numOfExistingPages = response.data.length;
-      });
-
       loggedIn = true;
     } else if (response.status === 'not_authorized') {
       // the user is logged in to Facebook, 
@@ -126,6 +121,13 @@ var checkStep1 = function(){
     var link1Html = $('#link1').html();
     link1Html = link1Html + '<br/> <h2>Alright, you\'re logged in!</h2>'
     $('#link1').html(link1Html);
+
+    // Important for step 4
+    FB.api('/me/accounts/', function(response) {
+      numOfExistingPages = response.data.length;
+    });
+
+
     if (whichStep == 1){
       $('html, body').delay(2000).animate({ scrollTop: $('#link2').offset().top - body_padding }, 1000); 
     }
