@@ -39,17 +39,18 @@ $('.next').click(function() {
 
 // Facebook
 // FB login
+var loggedIn = false;
 var fbLogin = function(){
   FB.login(function(response) {
     if (response.authResponse) {
       console.log('User is logged in');
+      loggedIn = true;
     } else {
       console.log('User cancelled login or did not fully authorize.');
     }
    }, {scope: 'manage_pages'});
 }
 
-var loggedIn = false;
 var numOfExistingPages = [];
 var fbLoginStatus = function(){
   FB.getLoginStatus(function(response) {
@@ -107,6 +108,9 @@ window.fbAsyncInit = function() {
 
 // If logged in, scroll to step 2
 var checkStep1 = function(){
+  if (debug){
+      console.log('Step 1 running');
+    }
   if (whichStep >= 1 && loggedIn){
     clearInterval(t1);
     if (debug){
