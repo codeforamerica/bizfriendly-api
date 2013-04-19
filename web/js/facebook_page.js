@@ -76,7 +76,7 @@ var fbLoginStatus = function(){
     } else {
       // the user isn't logged in to Facebook.
       if (debug){
-        console.log('Not logged in.')
+        console.log('Not logged in.');
       }
       fbLogin();
     }
@@ -87,10 +87,10 @@ var fbLoginStatus = function(){
 window.fbAsyncInit = function() {
   FB.init({
     appId      : '158953284268352', // App ID from the app dashboard
-    channelUrl : 'ondrae.github.io/howtocity/web/channel.html', // Channel file for x-domain comms
+    // channelUrl : 'channel.html', // Channel file for x-domain comms
     status     : true,              // Check Facebook Login status
-    //cookie     : true, // enable cookies to allow the server to access the session
-    xfbml      : true  // parse XFBML
+    cookie     : true, // enable cookies to allow the server to access the session
+    // xfbml      : true  // parse XFBML
   });
   if (debug){
     console.log('Facebook has loaded.');
@@ -102,7 +102,7 @@ window.fbAsyncInit = function() {
    var js, fjs = d.getElementsByTagName(s)[0];
    if (d.getElementById(id)) {return;}
    js = d.createElement(s); js.id = id;
-   js.src = "http://connect.facebook.net/en_US/all.js";
+   js.src = "//connect.facebook.net/en_US/all.js";
    fjs.parentNode.insertBefore(js, fjs);
  }(document, 'script', 'facebook-jssdk'));
 
