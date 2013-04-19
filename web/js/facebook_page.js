@@ -1,4 +1,4 @@
-var debug = true;
+var debug = false;
 
 // Scroll bar and which step
 var whichStep = 1;
@@ -51,7 +51,7 @@ var fbLogin = function(){
    }, {scope: 'manage_pages'});
 }
 
-var numOfExistingPages = [];
+var numOfExistingPages = 0;
 var fbLoginStatus = function(){
   FB.getLoginStatus(function(response) {
     if (debug){
@@ -65,9 +65,12 @@ var fbLoginStatus = function(){
       // and signed request each expire
       // var uid = response.authResponse.userID;
       // var accessToken = response.authResponse.accessToken;
+
+      // Important for step 4
       FB.api('/me/accounts/', function(response) {
         numOfExistingPages = response.data.length;
       });
+
       loggedIn = true;
     } else if (response.status === 'not_authorized') {
       // the user is logged in to Facebook, 
@@ -87,24 +90,23 @@ var fbLoginStatus = function(){
 window.fbAsyncInit = function() {
   FB.init({
     appId      : '158953284268352', // App ID from the app dashboard
-    channelUrl : 'http://ondrae.github.io/howtocity/web/channel.html', // Channel file for x-domain comms
+    channelUrl : 'http://localhost:8000/channel.html', // Channel file for x-domain comms
     status     : true,              // Check Facebook Login status
     cookie     : true, // enable cookies to allow the server to access the session
-    // xfbml      : true  // parse XFBML
+    xfbml      : true  // parse XFBML
   });
   if (debug){
     console.log('Facebook has loaded.');
   }
-
   fbLoginStatus();
 }
 
-// // Load the SDK asynchronously
+// Load the SDK asynchronously
 (function(d, s, id){
    var js, fjs = d.getElementsByTagName(s)[0];
    if (d.getElementById(id)) {return;}
    js = d.createElement(s); js.id = id;
-   js.src = "//connect.facebook.net/en_US/all.js";
+   js.src = "http://connect.facebook.net/en_US/all.js";
    fjs.parentNode.insertBefore(js, fjs);
  }(document, 'script', 'facebook-jssdk'));
 
@@ -154,9 +156,9 @@ var checkStep2 = function(){
       var link2Html = $('#link2').html();
       link2Html = link2Html + '<br/> <h2>You\'re welcome.</h2>'
       $('#link2').html(link2Html);
-    }, 5000);
+    }, 3000);
     if (whichStep == 2){
-      $('html, body').delay(7000).animate({ scrollTop: $('#link3').offset().top - body_padding }, 1000); 
+      $('html, body').delay(6000).animate({ scrollTop: $('#link3').offset().top - body_padding }, 1000); 
     }
   }
 }
@@ -169,8 +171,8 @@ var checkStep3 = function(){
     
     FB.api('/me/accounts/', function(response) {
       if (debug){
-        console.log('My account:');
-        console.log(response);
+        console.log('Number of existing pages: ', numOfExistingPages);
+        console.log('My accounts: ', response);
         var link3Html = $('#link3').html();
         newPage = response.data[0];
         link3Html = link3Html + "Debug mode: Using "+response.data[0].name;
@@ -203,252 +205,66 @@ var t3 = setInterval(checkStep3,1000);
 // Once they add a description or a website, go to next step.
 var checkStep4 = function(){
   if (whichStep >= 4 && loggedIn){
-    
+    var stepComplete = false;
     FB.api(newPage.id, function(response) {
       if (debug){
         console.log('Page:');
         console.log(response);
         clearInterval(t4);
       }
-    
+      
       if(response.hasOwnProperty('about')){
         if(debug){
           console.log(response.about);
         }
         var link4Html = $('#link4').html();
-        link4Html = link4Html + '<br/>You gave' + newPage.name;
-        link4Html = link4Html + 'a description of' + response.about;
+        link4Html = link4Html + '<br/>You gave ' + newPage.name;
+        link4Html = link4Html + ' a description of ' + response.about;
         $('#link4').html(link4Html);
+        stepComplete = true;
       }
+
       if(response.hasOwnProperty('website')){
         if(debug){
           console.log(response.website);
         }
         var link4Html = $('#link4').html();
-        link4Html = link4Html + 'and set the website to: ' + response.website;
+        link4Html = link4Html + '<br/> and set the website to: ' + response.website;
         $('#link4').html(link4Html);
+        stepComplete = true;
+      }
+      
+      if (whichStep == 4 && stepComplete){
+        clearInterval(t4);
+        $('html, body').delay(5000).animate({ scrollTop: $('#link5').offset().top - body_padding }, 1000);
       }
     });
-    //   if (numOfExistingPages < response.data.length){
-    //     clearInterval(t4);
-    //     if (debug){
-    //       console.log('Step 4 finished.');
-    //       console.log(response.data[response.data.length-1]);
-    //     }
-    //     newPage = response.data[response.data.length-1];
-    //     var link4Html = $('#link4').html();
-    //     link4Html = link4Html + '<br/> <p>Awesome! You created a Facebook page called <h2>'+newPage.name+'</h2></p>'
-    //     $('#link4').html(link4Html);
 
-    if (whichStep == 4){
-      $('html, body').delay(5000).animate({ scrollTop: $('#link5').offset().top - body_padding }, 1000);
-    }
-    //   }
-    // });
   }
 }
 var t4 = setInterval(checkStep4,1000);
 
-
-// Check step 6 for fb login
-// var step6login = function(){
-//   if(whichStep >= 6){
-//     clearInterval(t6);
-//     // Need to be logged in after step 6
-//     fbLoginStatus();
-//     clearInterval(t6login); // Kill the loop
-//   }
-// }
-
-// var checkStep6 = function(){
-//   if (whichStep >= 6){
-//     fbLoginStatus();
-//     // console.log('step6');
-//     if (loggedIn){
-//       // console.log(loggedIn);
-//       clearInterval(t6); // Kill the loop
-//       if (whichStep == 6){
-//         var link6Html = $('#link6').html();
-//         link6Html = link6Html + '<br/> <h2>Well Done!</h2>'
-//         $('#link6').html(link6Html);
-        
-//         $('html, body').delay(1000).animate({ scrollTop: $('#link7').offset().top - body_padding }, 1000);
-//       }
-//     }   
-//   }
-// }
-
-// // var t6login = setInterval(step6login,1000);
-// var t6 = setInterval(checkStep6,1000);
-
-
-// var checkStep7 = function(){
-//   if (whichStep >= 7){
-//     // Check if they have created any pages
-//     FB.api('/me/accounts/', function(response) {
-//       // console.log('Response:')
-//       // console.log(response);
-
-//       var page_id = response.data[fb_page].id;
-//       // console.log('Page id: ');
-//       // console.log(page_id);
-//       // console.log
-//       FB.api(page_id.toString(), function(response) {
-//         // console.log('fbo_page_response')
-//         // console.log(response);
-//         if (response.hasOwnProperty('about')){
-//           clearInterval(t7);
-//           var link7Html = $('#link7').html();
-//           link7Html = link7Html + '<br/> <h2>Well Done!</h2>'
-//           $('#link7').html(link7Html);
-          
-//           $('html, body').delay(1000).animate({ scrollTop: $('#link8').offset().top - body_padding }, 1000);
-//         }
-//       });
-
-      
-//     });
-//     // Check if description of page is filled in
-//   }
-// }
-
-// // var t6login = setInterval(step6login,1000);
-// var t7 = setInterval(checkStep7, 1007);
-
-
-// var checkStep8 = function(){
-//   if (whichStep >= 8){
-//     // Check if they have created any pages
-//     FB.api('/me/accounts/', function(response) {
-//       var page_id = response.data[fb_page].id;
-//       FB.api(page_id.toString()+'/picture', function(response) {
-//         console.log(response.data.is_silhouette);
-//         if(!response.data.is_silhouette){
-//           clearInterval(t8);
-//           var link8Html = $('#link8').html();
-//           link8Html = link8Html + '<br/> <h2>Well Done!</h2>'
-//           $('#link8').html(link8Html);
-          
-//           $('html, body').delay(1000).animate({ scrollTop: $('#link9').offset().top - body_padding }, 1000);
-//         }
-//       });
-
-      
-//     });
-//     // Check if description of page is filled in
-//   }
-// }
-
-// // var t6login = setInterval(step6login,1000);
-// var t8 = setInterval(checkStep8, 1007);
-
-
-// var checkStep7 = function(){
-//   // Login the How to City app
-//   function login() {
-//     FB.login(function(response) {
-//         if (response.authResponse) {
-//             // connected
-//         } else {
-//             // cancelled
-//         }
-//     });
-//   }
-
-  
-//   if (whichStep == 7){
-//    //  FB.login(function(response) {
-//    // if (response.authResponse) {
-//      // console.log('Welcome!  Fetching your information.... ');
-//      FB.api('/me/accounts', function(response) {
-//        console.log(response);
-//      });
-//    // } else {
-//    //   console.log('User cancelled login or did not fully authorize.');
-//    // }
-//  // });
-//     // login();
-//     clearInterval(t7);
-//   } 
-
-// }
-
-
-// var t7 = setInterval(checkStep7,1000);
-
-
-
-
-
-// JUNK ---------
-
-// console.log('Welcome!  Fetching your information.... ');
-      // FB.api('/me', function(response) {
-      //  console.log('Good to see you, ' + response.name + '.');
-      // });
-      // FB.api('/me/accounts/', function(response) {
-      //   console.log(response);
-      // });
-
-// // Runs once Facebook has loaded
-// window.fbAsyncInit = function() {
-//   // init the FB JS SDK
-//   FB.init({
-//     appId      : '158953284268352', // App ID from the app dashboard
-//     status     : true               // Check Facebook Login status
-//   });
-
-//   // Check for step 6 and facebook login
-//   FB.Event.subscribe('auth.authResponseChange', function(response) {
-//     alert('The status of the session is: ' + response.status);
-//   });
-
-// };
-
-// // Check fb login status
-// var fbLoginStatus = false;
- 
-//   var checkFBLogin = function(){
-//     FB.getLoginStatus(function(response) {
-//     console.log(fbLoginStatus);
-//     if (response.status === 'connected') {
-//       fbLoginStatus = true;
-//     // the user is logged in and has authenticated your
-//     // app, and response.authResponse supplies
-//     // the user's ID, a valid access token, a signed
-//     // request, and the time the access token 
-//     // and signed request each expire
-//     var uid = response.authResponse.userID;
-//     var accessToken = response.authResponse.accessToken;
-//   } else if (response.status === 'not_authorized') {
-//     // the user is logged in to Facebook, 
-//     // but has not authenticated your app
-//   } else {
-//     // the user isn't logged in to Facebook.
-//   }
-//  },true);
-//   };
-
-
-
-
-
-
-
-  // // Update current sections
-
-  // // Step 6 - Facebook login
-  // var whichStep = Math.ceil(scroll_pct / 5.5);
-  // console.log(whichStep);
-  // if(!step6 && whichStep == 6){ // Fires once
-  //   step6 = true;
-  //   console.log('step6: '+ step6);
-    
-
-  //   checkFBLogin();
-  //   console.log('loginStatus: '+ loginStatus);
-  //   if (loginStatus){
-  //     // $('html, body').animate({ scrollTop: sections.offset().top }, 1000);
-  //     console.log('In loop:' + sections);
-  //   }
-  // }
+// Once they add a picture, go to next step.
+var checkStep5 = function(){
+  if (whichStep >= 5 && loggedIn){
+    FB.api(newPage.id + '/picture', function(response) {
+      if (debug){
+        console.log('Picture:', response);
+        console.log(response.data.is_silhouette);
+        clearInterval(t5);
+      }
+      if(!response.data.is_silhouette){
+        clearInterval(t5);
+        setTimeout(function(){
+          var link5Html = $('#link5').html();
+          link5Html = link5Html + '<br/>What a nice picture';
+          $('#link5').html(link5Html);
+        }, 2000);
+        if (whichStep == 5){
+          $('html, body').delay(5000).animate({ scrollTop: $('#link6').offset().top - body_padding }, 1000);
+        }
+      }
+    });
+  }
+}
+var t5 = setInterval(checkStep5,1000);
