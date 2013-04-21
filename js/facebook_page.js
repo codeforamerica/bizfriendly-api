@@ -1,5 +1,5 @@
 var debug = false;
-var fb_request_time = 10000;
+var fb_request_time = 2000;
 // UI ----------------------------------------------------------------------------------------
 // Scroll bar and which step
 var whichStep = 1;
