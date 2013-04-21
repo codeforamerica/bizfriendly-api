@@ -5,6 +5,30 @@ body{
 	padding-top:140px;
 }
 
+.header_short{
+	background:url('../img/header_long.jpg');
+	background-position:left;
+	height: 45px;
+}
+
+.header_long{
+	background-image:url('../img/header_long.jpg');
+	background-position:center;
+	height: 45px;
+}
+
+.header_short a{
+	line-height: 0; 
+    font-size: 0;
+    color: transparent;
+}
+
+.header_long a{
+	line-height: 0; 
+    font-size: 0;
+    color: transparent;
+}
+
 .narrow{
 	width:415px;
 	padding-left:10px;
