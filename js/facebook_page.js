@@ -1,5 +1,6 @@
 var debug = false;
 
+// UI ----------------------------------------------------------------------------------------
 // Scroll bar and which step
 var whichStep = 1;
 var scroll_height;
@@ -37,7 +38,7 @@ $('.next').click(function() {
   $('html, body').animate({ scrollTop: $('#link'+nextStep).offset().top - body_padding }, 1000);
 });
 
-// Facebook
+// Facebook ----------------------------------------------------------------------------------------
 // FB login
 var loggedIn = false;
 var fbLogin = function(){
@@ -52,6 +53,12 @@ var fbLogin = function(){
 }
 
 var numOfExistingPages = 0;
+var getExistingPageCount = function(){
+  FB.api('/me/accounts', function(response){
+    numOfExistingPages = response.data.length;
+  });
+}
+
 var fbLoginStatus = function(){
   FB.getLoginStatus(function(response) {
     if (debug){
@@ -85,7 +92,7 @@ var fbLoginStatus = function(){
 window.fbAsyncInit = function() {
   FB.init({
     appId      : '158953284268352', // App ID from the app dashboard
-    channelUrl : 'http://localhost:8000/channel.html', // Channel file for x-domain comms
+    // channelUrl : 'http://localhost:8000/channel.html', // Channel file for x-domain comms
     status     : true,              // Check Facebook Login status
     cookie     : true, // enable cookies to allow the server to access the session
     xfbml      : true  // parse XFBML
@@ -107,6 +114,13 @@ window.fbAsyncInit = function() {
 
 
 // Steps Functions ---------------------
+
+//Trying to refactor the step functions
+var checkSteps = function(){
+  if (debug){
+    console.log(whichStep);
+  }
+}
 
 // If logged in, scroll to step 2
 var checkStep1 = function(){
