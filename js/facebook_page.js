@@ -1,5 +1,5 @@
-var debug = false;
-var fb_request_time = 2000;
+var debug = true;
+var fb_request_time = 5000;
 // UI ----------------------------------------------------------------------------------------
 // Scroll bar and which step
 var whichStep = 1;
@@ -135,16 +135,14 @@ $(document).ready(function(){
       if (debug){
         console.log('Step 1 stopped');
       }
-      var link1Html = $('#link1').html();
-      link1Html = link1Html + '<br/> <h2>Wonderful!</h2>' 
-      link1Html = link1Html + 'You\'ve logged in to Facebook and given our app the permissions it needs to teach you how to create Facebook pages.'
-      $('#link1').html(link1Html);
+
+      // Show the feedback
+      $('#link1 .feedback').toggle();
 
       // Important for step 4
       FB.api('/me/accounts/', function(response) {
         numOfExistingPages = response.data.length;
       });
-
 
       if (whichStep == 1){
         $('html, body').delay(2000).animate({ scrollTop: $('#link2').offset().top - body_padding }, 1000); 
@@ -172,11 +170,12 @@ $(document).ready(function(){
       setTimeout(function(){
         challengeWindow = $.popupWindow('https://www.facebook.com/pages/create/', challengeSiteFeatures);
       }, 2000);
+
       setTimeout(function(){
-        var link2Html = $('#link2').html();
-        link2Html = link2Html + '<br/> <h2>You\'re welcome.</h2>'
-        $('#link2').html(link2Html);
+        // Show the feedback
+        $('#link2 .feedback').toggle();
       }, 3000);
+
       if (whichStep == 2){
         $('html, body').delay(6000).animate({ scrollTop: $('#link3').offset().top - body_padding }, 1000); 
       }
@@ -212,9 +211,10 @@ $(document).ready(function(){
             console.log(response.data[response.data.length-1]);
           }
           newPage = response.data[response.data.length-1];
-          var link3Html = $('#link3').html();
-          link3Html = link3Html + '<br/> <p>Awesome! You created a Facebook page called <h2>'+newPage.name+'</h2></p>'
-          $('#link3').html(link3Html);
+
+          $('#link3 .feedback h2').html(newPage.name);
+          // Show the feedback
+          $('#link3 .feedback').toggle();
 
           if (whichStep == 3){
             $('html, body').delay(5000).animate({ scrollTop: $('#link4').offset().top - body_padding }, 1000);
@@ -240,10 +240,11 @@ $(document).ready(function(){
           if(debug){
             console.log(response.about);
           }
-          var link4Html = $('#link4').html();
-          link4Html = link4Html + '<br/>You gave ' + newPage.name;
-          link4Html = link4Html + ' a description of ' + response.about;
-          $('#link4').html(link4Html);
+
+          $('#link4 .feedback h2').html(newPage.name);
+          $('#link4 .feedback h4').html(response.about);
+          // Show the feedback
+          $('#link4 .feedback').toggle();
           stepComplete = true;
         }
 
@@ -251,9 +252,9 @@ $(document).ready(function(){
           if(debug){
             console.log(response.website);
           }
-          var link4Html = $('#link4').html();
+          var link4Html = $('#link4 .feedback').html();
           link4Html = link4Html + '<br/> and set the website to: ' + response.website;
-          $('#link4').html(link4Html);
+          $('#link4 .feedback').html(link4Html);
           stepComplete = true;
         }
         
