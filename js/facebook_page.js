@@ -1,4 +1,4 @@
-var debug = false;
+var debug = true;
 var fb_request_time = 2000;
 // UI ----------------------------------------------------------------------------------------
 // Scroll bar and which step
@@ -124,6 +124,8 @@ $(document).ready(function(){
   //     console.log(whichStep);
   //   }
   // }
+
+
 
   // If logged in, scroll to step 2
   var checkStep1 = function(){
@@ -280,9 +282,7 @@ $(document).ready(function(){
         if(!response.data.is_silhouette){
           clearInterval(t5);
           setTimeout(function(){
-            var link5Html = $('#link5').html();
-            link5Html = link5Html + '<br/>What a nice picture';
-            $('#link5').html(link5Html);
+            $('#link5 .feedback').toggle();
           }, 2000);
           if (whichStep == 5){
             $('html, body').delay(5000).animate({ scrollTop: $('#link6').offset().top - body_padding }, 1000);

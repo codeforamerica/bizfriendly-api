@@ -12,8 +12,7 @@ body{
 }
 
 .header_long{
-	background-image:url('../img/header_long.jpg');
-	background-position:center;
+	background-image:url('../img/side_header.jpg');
 	height: 45px;
 }
 
