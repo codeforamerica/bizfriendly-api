@@ -33,11 +33,11 @@ body{
 	padding-right:10px;
 }
 
-.narrow h3{
-	padding-top:5px;
+.inst_header h4{
+	padding-top:15px;
 }
 
-.narrow h4{
+.inst_header h5{
 	margin-top: -10px;
 }
 
@@ -66,15 +66,27 @@ section .btn{
 	margin-bottom: 10px;
 }
 
-section .feedback{
+.feedback{
 	display: none;
 	padding-top: 100px;
 }
 
-section .feedback h2{
+.feedback h2{
 	color: #347235;
-
 }
+
+.congrats{
+	color: #347235;
+}
+
+.pageName, .pageAbout, .pageWebsite{
+	font-weight:bold;
+}
+
+.feedback2{
+	display: none;
+}
+
 .next{
 	position: fixed; bottom:5px;right:10px;
 }

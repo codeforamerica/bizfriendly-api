@@ -6,7 +6,7 @@ var fb_request_time = 2000;
 
 //Fix width
 var width = window.screen.width;
-$('.narrow').css('width',width - 1020); // Hackity
+$('.narrow').css('width',280); // Hackity
 
 var whichStep = 1;
 var scroll_height;
@@ -149,7 +149,7 @@ $(document).ready(function(){
       });
 
       if (whichStep == 1){
-        $('html, body').delay(2000).animate({ scrollTop: $('#link2').offset().top - body_padding }, 1000); 
+        $('html, body').delay(3000).animate({ scrollTop: $('#link2').offset().top - body_padding }, 1000); 
       }
     }
   }
@@ -200,8 +200,9 @@ $(document).ready(function(){
           if(numOfExistingPages>0){ // WHile testing, if no pages, then wait till they make one.
             var link3Html = $('#link3').html();
             newPage = response.data[0]; // While testing, use an exisiting page if there is one.
-            link3Html = link3Html + "Debug mode: Using "+response.data[0].name;
-            $('#link3').html(link3Html);
+            $('.feedback .pageName').html(newPage.name);
+            // Show the feedback
+            $('#link3 .feedback').toggle();
             clearInterval(t3);
             if (whichStep == 3){
               $('html, body').delay(5000).animate({ scrollTop: $('#link4').offset().top - body_padding }, 1000);
@@ -216,7 +217,7 @@ $(document).ready(function(){
           }
           newPage = response.data[response.data.length-1];
 
-          $('#link3 .feedback h2').html(newPage.name);
+          $('.feedback .pageName').html(newPage.name);
           // Show the feedback
           $('#link3 .feedback').toggle();
 
@@ -245,8 +246,7 @@ $(document).ready(function(){
             console.log(response.about);
           }
 
-          $('#link4 .feedback h2').html(newPage.name);
-          $('#link4 .feedback h4').html(response.about);
+          $('.feedback .pageAbout').html(response.about);
           // Show the feedback
           $('#link4 .feedback').toggle();
           stepComplete = true;
@@ -256,9 +256,8 @@ $(document).ready(function(){
           if(debug){
             console.log(response.website);
           }
-          var link4Html = $('#link4 .feedback').html();
-          link4Html = link4Html + '<br/> and set the website to: ' + response.website;
-          $('#link4 .feedback').html(link4Html);
+          $('.feedback2 .pageWebsite').html(response.website);
+          $('#link4 .feedback2').toggle();
           stepComplete = true;
         }
         
