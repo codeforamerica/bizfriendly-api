@@ -37,6 +37,7 @@ body{
 .narrow h3{
 	padding-top:5px;
 }
+
 .narrow h4{
 	margin-top: -10px;
 }
@@ -82,21 +83,3 @@ section .feedback h2{
 .back{
 	position: fixed; bottom:5px;
 }
-
-/*
-#hidden-nav a:active{
-	background-color: black;
-}*/
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,5 +1,6 @@
 var debug = true;
 var fb_request_time = 2000;
+
 // UI ----------------------------------------------------------------------------------------
 // Scroll bar and which step
 var whichStep = 1;
@@ -55,6 +56,7 @@ $(document).ready(function(){
   if (debug){
     console.log('Facebook has loaded.');
   }
+
   // FB login
   var loggedIn = false;
   var fbLogin = function(){
@@ -75,13 +77,6 @@ $(document).ready(function(){
     }
     fbLogin();
   });
-
-  var numOfExistingPages = 0;
-  // var getExistingPageCount = function(){
-  //   FB.api('/me/accounts', function(response){
-  //     numOfExistingPages = response.data.length;
-  //   });
-  // }
 
   var fbLoginStatus = function(){
     FB.getLoginStatus(function(response) {
@@ -111,12 +106,14 @@ $(document).ready(function(){
       }
     });
   }
+
   fbLoginStatus();
+
   if(debug){
     console.log("Logged in: ", loggedIn);
   }
 
-  // Steps Functions ---------------------
+  // Steps Functions ----------------------------------------------------------------------------------------
 
   //Trying to refactor the step functions
   // var checkSteps = function(){
@@ -125,7 +122,7 @@ $(document).ready(function(){
   //   }
   // }
 
-
+  var numOfExistingPages = 0;
 
   // If logged in, scroll to step 2
   var checkStep1 = function(){
@@ -158,7 +155,7 @@ $(document).ready(function(){
   var height = window.screen.height;
   var challengeSiteFeatures = {
     height: height,
-    width: width*0.695,
+    width: 1000,
     name: 'challenge',
     center: false
   }
@@ -235,7 +232,7 @@ $(document).ready(function(){
         if (debug){
           console.log('Page:');
           console.log(response);
-          //clearInterval(t4); // Uncomment if your testing further steps. 
+          // clearInterval(t4); // Uncomment if your testing further steps. 
         }
         
         if(response.hasOwnProperty('about')){
