@@ -1,8 +1,13 @@
-var debug = true;
+var debug = false;
 var fb_request_time = 2000;
 
 // UI ----------------------------------------------------------------------------------------
 // Scroll bar and which step
+
+//Fix width
+var width = window.screen.width;
+$('.narrow').css('width',width - 1020); // Hackity
+
 var whichStep = 1;
 var scroll_height;
 var doc_height = $('body').height();
