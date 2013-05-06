@@ -31,6 +31,7 @@ def index():
 def fb_page_instructions():
     return render_template('fb_page_instructions.html')
 
+
 #----------------------------------------
 # launch
 #----------------------------------------
