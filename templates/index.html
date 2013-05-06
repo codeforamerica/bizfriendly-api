@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block header %}
+<div class="navbar navbar-fixed-top">
+	<div class="header">
+		<div class="container">
+			<img src="{{ url_for('static', filename='img/header_long.jpg') }}">
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block main %}
+<div class="container page">
+  <div class="content">
+    <div class="hero-unit">
+      <h2>Promote Your Business Online</h2>
+      <p>How to City helps you learn how to use technology better in your business. Our first demo helps you promote your business online by setting up a Facebook page.</p>
+      <p><a id="launch" class="btn btn-primary btn-large">Start the demo &raquo;</a></p>
+    </div>
+  </div>
+  <hr>
+  <footer class="footer">
+      <p>&copy; How to City</p>
+  </footer>
+</div>
+{% endblock %}
+
+{% block js_footer %}
+  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+{% endblock %}

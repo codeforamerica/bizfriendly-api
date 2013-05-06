@@ -5,27 +5,9 @@ body{
 	padding-top:160px;
 }
 
-.header_short{
-	background:url('../img/header_long.jpg');
-	background-position:left;
-	height: 45px;
-}
-
-.header_long{
+.header{
 	background-image:url('../img/side_header.jpg');
 	height: 45px;
-}
-
-.header_short a{
-	line-height: 0; 
-    font-size: 0;
-    color: transparent;
-}
-
-.header_long a{
-	line-height: 0; 
-    font-size: 0;
-    color: transparent;
 }
 
 .narrow{

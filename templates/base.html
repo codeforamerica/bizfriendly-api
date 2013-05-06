@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {% block head %}
+      <title>How to City{% block title %}{% endblock %}</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="description" content="">
+      <meta name="keywords" content="">
+      <meta name="author" content="">
+      <meta charset="utf-8">
+
+      <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" rel="stylesheet">
+
+      <!-- <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap-responsive.css" rel="stylesheet"> -->
+      <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+
+      <!-- SUPPORT FOR IE6-8 OF HTML5 ELEMENTS -->
+      <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+      <link rel="shortcut icon" href="{{ url_for('static', filename='ico/favicon.ico') }}">
+
+      <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+      <script src="{{ url_for('static', filename='js/vendor/jquery.popupwindow.js') }}"></script>
+      {% block head_js %}
+      {% endblock %}
+    {% endblock %}
+  </head>
+
+  <body>
+    {% block header %}
+    {% endblock %}
+
+    {% block main %}
+    {% endblock %}
+
+
+    {% block js_footer %}
+    {% endblock %}
+    <script src="http://twitter.github.com/bootstrap/assets/js/bootstrap.js"></script>
+  </body>
+</html>
