@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/codeforamerica/howtocity.png)](https://travis-ci.org/codeforamerica/howtocity)
 
-
 How to City
 =========
 
@@ -19,6 +18,26 @@ How to City is a training platform to teach others how to use the latest in web 
 You can see a running version of the application at http://howtocity.herokuapp.com
 
 ## <a name="development-setup"></a>Development Setup
+
+How To City is written in Python, and runs as a standalone [Flask application](http://flask.pocoo.org/).
+
+1. Set up [virtual environment](http://www.virtualenv.org/en/latest/#usage).
+
+   `virtualenv --no-site-packages venv`
+
+2. Install requirements.
+
+   `pip install -r requirements.txt`
+
+3. Activate virtual environment in current shell:
+
+    (in bash) `source venv/bin/activate`
+
+    (…or csh/tcsh) `source venv/bin/activate.csh`
+
+4. Run application on [localhost port 5000](http://127.0.0.1:5000]):
+
+    `python app.py`
 
 ## <a name="usage"></a>Usage
 
