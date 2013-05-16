@@ -5,6 +5,10 @@ body{
 	padding-top:160px;
 }
 
+.category{
+	background-color: #999999;
+}
+
 .header{
 	background-image:url('../img/side_header.jpg');
 	height: 45px;

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block header %}
+<div class="navbar navbar-fixed-top">
+	<div class="header">
+		<div class="container">
+			<img src="{{ url_for('static', filename='img/header_long.jpg') }}">
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block main %}
+<div class="container page">
+  <div class="content">
+    <div class="hero-unit">
+      <h2>Categories</h2>
+      <div class="row">
+          Promtoe Yo Business!
+      </div>
+    </div>
+  </div>
+  <hr>
+  <footer class="footer">
+      <p>&copy; How to City</p>
+  </footer>
+</div>
+{% endblock %}
+
+
+{% block js_footer %}
+  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+{% endblock %}
