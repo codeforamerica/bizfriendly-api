@@ -1,5 +1,10 @@
 Flask==0.9
+Flask-SQLAlchemy==0.16
 Jinja2==2.6
+SQLAlchemy==0.8.1
 Werkzeug==0.8.3
 distribute==0.6.34
+psycopg2==2.5
+rauth==0.5.4
+requests==1.1.0
 wsgiref==0.1.2
