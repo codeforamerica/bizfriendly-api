@@ -13,21 +13,21 @@
 {% block main %}
 <div class="container page">
   <div class="content">
-    <div class="hero-unit">
-      <h2>Categories</h2>
+    <div class="page-header">
+      <h2>{{ category.name }}</h2>
+      <h3>Lessons</h3>
       <div class="row">
-          Promtoe Yo Business!
-      </div>
-    </div>
+        <ul class="thumbnails">
+          {% for lesson in lessons %}
+            <li class="span4">
+              <a href="{{ category.url }}/lesson/{{ lesson.url }}">
+                <h4>{{ lesson.name }}</h4>
+                <p>{{ lesson.description }}</p>
+              </a>
+            </li>
+          {% endfor %}
+        </ul> 
+      </div>  
   </div>
-  <hr>
-  <footer class="footer">
-      <p>&copy; How to City</p>
-  </footer>
 </div>
-{% endblock %}
-
-
-{% block js_footer %}
-  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 {% endblock %}

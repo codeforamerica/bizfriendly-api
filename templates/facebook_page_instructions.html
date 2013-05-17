@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block head_js %}
+    <script src="http://connect.facebook.net/en_US/all.js"></script>
+{% endblock %}
+
+<div id="fb-root"></div>
+
+{% block header %}
+
+<div class="navbar navbar-fixed-top">
+    <div class="header">
+        <div class="narrow">
+          <img src="{{ url_for('static', filename='img/header.jpg') }}">
+        </div>
+    </div>
+</div>
+
+
+<div class="inst_header">
+    <div class="narrow">
+        <h4>Promote Your Business Online</h4>
+        <div class="progress">
+        <div class="bar"></div>
+        </div>
+        <h5>Your Progress</h5>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block main %}
+<div class="narrow">
+    <a class="back btn btn-large">Back</a>
+    <a class="next btn btn-large">Next</a>
+
+    <section id="link1">
+        <h2>Step 1</h2>
+        <p>Click the button below to log in to Facebook.</p>
+        <p>If you already have a Facebook account, please log in.</p>
+        <p>If you do not have a Facebook account, click “sign up for Facebook.”</p>
+        <a class="btn btn-large fbLoginBtn">Login to Faceook</a>
+        <p>After logging in, you'll need to give the How to City app permission to talk to your Facebook account. Don’t worry, we’re not posting anything on your profile or collect any information about you!</p>
+        <div class='feedback'>
+            <h2>You’re all set!</h2>
+            <p>You've logged in to Facebook and given How to City the permission it needs to teach you how to create Facebook pages.<p>
+        </div>
+    </section>
+    <section id="link2">
+        <h2>Step 2</h2>
+        <p>How to City is going to open up the Facebook Pages website.</p>
+        <div class='feedback'>
+            <h2>Let’s check it out!</h2>
+        </div>
+   </section>
+    <section id="link3">
+        <h2>Step 3</h2>
+        <p>What kind of business do you have? Select a page type.</p>
+        <p>Select a category for your business.</p>
+        <p>Enter any additional business information.</p>
+        <p>Check the 'I agree to Facebook Pages terms' box.</p>
+        <p>Click on Get Started!</p>
+        <div class="feedback">
+            <p><h2>Awesome!</h2> You created a Facebook page called</p><span class='pageName'>...</span>
+        </div>
+    </section>
+    <section id="link4">
+        <h2>Step 4</h2>
+        <p>Choose a category.</p> 
+        <p>Add a brief description of your company.</p> 
+        <p>Add your website, or another web address like Yelp or Twitter. It’s also okay if you leave this blank.</p>
+        <p>Click “save info” to add this to your page.</p>
+        <div class="feedback">
+            <p><h2>Nice work!</h2> You gave <span class='pageName'>...</span> a description of <span class="pageAbout">...</span></p>
+            <div class="feedback2">
+                <p>with the website <span class="pageWebsite">...</span></p>
+            </div>
+        </div>
+        
+    </section>
+    <section id="link5">
+        <h2>Step 5</h2>
+        <p>Upload a profile picture. Your company logo will look great! You can upload one from your computer or import from a website.</p>
+        <div class="feedback">
+            <p><h2>Looking good!</h2></p>
+        </div>
+    </section>
+    <section id="link6">
+        <h2>Step 6</h2>
+        <p>You can enable ads for your company. We recommend coming back to this later. Click skip.</p>
+    </section>
+    <section id="link7">
+        <h2>Step 7</h2>
+        <p><h2 class='congrats'>Congrats!</h2> Your page is live! Nice work and job well done. There's still plenty to learn to make your page come to life. Check back soon for the next lesson.</p>
+    </section>
+    <section id="link8">
+        <h2>Follow Up</h2>
+        <p>Thanks for taking How to City for a test drive. We'd love to get your feedback to help make it truly great.</p>
+        <a class='btn btn-large' href="https://docs.google.com/a/codeforamerica.org/forms/d/1uaf51wqkJDPH4JaDm_9RD1Nk0pc7BECzdx_nHQ1VFug/viewform" target="_blank">Give Feedback</a>
+    </section>
+</div>
+{% endblock %}
+
+    
+{% block js_footer %}
+      <script src="{{ url_for('static', filename='js/facebook_page.js') }}"></script>
+{% endblock %}
+     
+  </body>
+</html>

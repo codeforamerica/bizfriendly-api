@@ -13,19 +13,31 @@
 {% block main %}
 <div class="container page">
   <div class="content">
-    <div class="hero-unit">
-      <h2>Promote Your Business Online</h2>
-      <p>How to City helps you learn how to use technology better in your business. Our first demo helps you promote your business online by setting up a Facebook page.</p>
-      <p><a id="launch" class="btn btn-primary btn-large">Start the demo &raquo;</a></p>
+    <div class="page-header">
+      <h2>Welcome to the web.</h2>
+      <div class="row">
+        <ul class="thumbnails">
+          <li class="span4">
+            <a href="categories">
+              <h4>Learn</h4>
+              <p>Learn how to do the webs.</p>
+            </a>
+          </li>
+          <li class="span4">
+            <a href="teach">
+              <h4>Teach</h4>
+              <p>Teach the webs.</p>
+            </a>
+          </li>
+          <li class="span4">
+            <a href="connect">
+              <h4>Connect</h4>
+              <p>Connect with others on the webs.</p>
+            </a>
+          </li>
+        </ul> 
+      </div>
     </div>
   </div>
-  <hr>
-  <footer class="footer">
-      <p>&copy; How to City</p>
-  </footer>
 </div>
-{% endblock %}
-
-{% block js_footer %}
-  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 {% endblock %}

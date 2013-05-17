@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block header %}
+<div class="navbar navbar-fixed-top">
+	<div class="header">
+		<div class="container">
+			<img src="{{ url_for('static', filename='img/header_long.jpg') }}">
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block main %}
+<div class="container page">
+  <div class="content">
+    <div class="page-header">
+      <h2>{{ category.name }}</h2>
+      <h3>{{ lesson.name }}</h3>
+      <p>{{ lesson.description }}</p>
+      <p><a id="launch" class="btn btn-primary btn-large">Start the demo &raquo;</a></p>
+  </div>
+</div>
+{% endblock %}
+
+
+{% block js_footer %}
+  <script>
+    var width = window.screen.width;
+    var height = window.screen.height;
+
+    var instructionSiteFeatures = {
+      height: height,
+      width: width - 1000,
+      left: 1000,
+      name: 'instructions',
+      center: false,
+    }
+
+    $("#launch").click(function() {
+      var instructionsWindow = $.popupWindow('{{ lesson.url }}/facebook_page_instructions', instructionSiteFeatures);
+    });
+  </script>
+{% endblock %}

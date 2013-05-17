@@ -13,26 +13,21 @@
 {% block main %}
 <div class="container page">
   <div class="content">
-    <div class="hero-unit">
+    <div class="page-header">
       <h2>Categories</h2>
       <div class="row">
+        <ul class="thumbnails">
           {% for category in categories %}
-            <a href="{{category.url}}"><div class="span3 category">
-              <h4>{{ category.name }}</h4>
-              <p>{{ category.description }}</p>
-            </div></a>
+            <li class="span4">
+              <a href="category/{{category.url}}">
+                <h4>{{ category.name }}</h4>
+                <p>{{ category.description }}</p>
+              </a>
+            </li>
           {% endfor %}
+        </ul> 
       </div>
     </div>
   </div>
-  <hr>
-  <footer class="footer">
-      <p>&copy; How to City</p>
-  </footer>
 </div>
-{% endblock %}
-
-
-{% block js_footer %}
-  <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 {% endblock %}
