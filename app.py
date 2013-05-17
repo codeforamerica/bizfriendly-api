@@ -12,10 +12,10 @@ app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 db = SQLAlchemy(app)
 
-app.config.update(
-    DEBUG = True,
-    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity'
-)
+# app.config.update(
+#     DEBUG = True,
+#     SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity'
+# )
 
 #----------------------------------------
 # models
