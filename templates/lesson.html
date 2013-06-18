@@ -37,7 +37,7 @@
     }
 
     $("#launch").click(function() {
-      var instructionsWindow = $.popupWindow('{{ lesson.url }}/facebook_page_instructions', instructionSiteFeatures);
+      var instructionsWindow = $.popupWindow('{{ lesson.url }}/instructions/{{lesson.url}}_instructions', instructionSiteFeatures);
     });
   </script>
 {% endblock %}
