@@ -19,7 +19,7 @@ You can see a running version of the application at http://howtocity.herokuapp.c
 
 ## <a name="development-setup"></a>Development Setup
 
-How To City is written in Python, and runs as a standalone [Flask application](http://flask.pocoo.org/).
+How to City is written in Python, and runs as a standalone [Flask application](http://flask.pocoo.org/).
 
 1. Set up [virtual environment](http://www.virtualenv.org/en/latest/#usage).
 
