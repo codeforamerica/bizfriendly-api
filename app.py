@@ -3,6 +3,7 @@ from flask import Flask, render_template, send_from_directory
 from flask.ext.sqlalchemy import SQLAlchemy
 import flask.ext.restless
 from flask.ext.heroku import Heroku
+from flask_oauth import OAuth
 
 #----------------------------------------
 # initialization
@@ -55,13 +56,13 @@ class Step(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode, unique=True)
     description = db.Column(db.Unicode)
-    url = db.Column(db.Unicode)
+    # url = db.Column(db.Unicode)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'))
 
     def __init__(self, name, description, url):
         self.name = name
         self.description = description
-        self.url = url
+        # self.url = url
         # self.lesson_id = lesson_id
 
     def __repr__(self):
@@ -75,16 +76,18 @@ if app.config['DEBUG']:
     db.create_all()
     promote_online = Category('How to Promote Your Business Online', 'Lessons for promoting your business online.','promote_your_business_online')
     beyond_cash = Category('How to Bring Your Business Beyond Cash Only', 'Lessons for bringing your business beyond cash only.','beyond_cash_only')
+    how_to_city_better = Category('How to better live in the city', 'Lessons for using the internet to make living in the city easier and more fun.','how_to_city_better')
     fb_page_lesson = Lesson('How to create Facebook Page', 'Lesson on how to create a Facebook Page.','facebook_page', 1)
     twitter_lesson = Lesson('How to create a Twitter Account', 'Lesson on how to create a Twitter account.','twitter_account', 1)
+    yelp_lesson = Lesson('How to use Yelp', 'Lessons for how to use Yelp','how_to_yelp', 3)
 
     db.session.add(promote_online)
-    db.session.commit()
     db.session.add(beyond_cash)
+    db.session.add(how_to_city_better)
     db.session.commit()
     db.session.add(fb_page_lesson)
-    db.session.commit()
     db.session.add(twitter_lesson)
+    db.session.add(yelp_lesson)
     db.session.commit()
 
 db.create_all()
@@ -124,18 +127,19 @@ def category(category_url):
     # Get the correct lessons for this category
     category = Category.query.filter_by(url=category_url).first()
     lessons = Lesson.query.filter_by(category_id=category.id).all()
-    return render_template(category_url+'.html', category=category, lessons=lessons, )
+    return render_template('lessons.html', category=category, lessons=lessons, )
 
 @app.route("/category/<category_url>/lesson/<lesson_url>")
 def lesson(category_url, lesson_url):
     category = Category.query.filter_by(url=category_url).first()
     lesson = Lesson.query.filter_by(url=lesson_url).first()
-    return render_template(lesson_url+'.html', category=category, lesson=lesson)
+    return render_template('lesson.html', category=category, lesson=lesson)
 
-@app.route("/category/<category_url>/lesson/<lesson_url>/<instructions_url>")
+@app.route("/category/<category_url>/lesson/<lesson_url>/instructions/<instructions_url>")
 def instructions(category_url, lesson_url, instructions_url):
-    return render_template(instructions_url+'.html')
-
+    category = Category.query.filter_by(url=category_url).first()
+    lesson = Lesson.query.filter_by(url=lesson_url).first()
+    return render_template(instructions_url+'.html', category=category, lesson=lesson)
 
 #----------------------------------------
 # launch
