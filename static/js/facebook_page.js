@@ -171,18 +171,16 @@ $(document).ready(function(){
       if (debug){
         console.log('Step 2 finished.');
       }
-      setTimeout(function(){
+      $("#fb_pages").click(function(){
         challengeWindow = $.popupWindow('https://www.facebook.com/pages/create/', challengeSiteFeatures);
-      }, 2000);
-
-      setTimeout(function(){
-        // Show the feedback
-        $('#link2 .feedback').toggle();
-      }, 3000);
-
-      if (whichStep == 2){
-        $('html, body').delay(6000).animate({ scrollTop: $('#link3').offset().top - body_padding }, 1000); 
-      }
+        setTimeout(function(){
+          // Show the feedback
+          $('#link2 .feedback').toggle();
+        }, 1000);
+        if (whichStep == 2){
+          $('html, body').delay(3000).animate({ scrollTop: $('#link3').offset().top - body_padding }, 1000); 
+        }
+      })
     }
   }
   var t2 = setInterval(checkStep2,1000);
