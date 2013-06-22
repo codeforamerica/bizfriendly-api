@@ -4,6 +4,8 @@ from flask.ext.sqlalchemy import SQLAlchemy
 import flask.ext.restless
 from flask.ext.heroku import Heroku
 from flask_oauth import OAuth
+# from flask_sslify import SSLify
+
 
 #----------------------------------------
 # initialization
@@ -12,11 +14,11 @@ from flask_oauth import OAuth
 app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 db = SQLAlchemy(app)
-
-# app.config.update(
-#     DEBUG = True,
-#     SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity'
-# )
+# sslify = SSLify(app)
+app.config.update(
+    DEBUG = True,
+    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity'
+)
 
 #----------------------------------------
 # models
@@ -70,25 +72,27 @@ class Step(db.Model):
 
 
 # # Create the database tables.
-# if app.config['DEBUG']:
+if app.config['DEBUG']:
 
-#     db.drop_all()
-#     db.create_all()
-#     promote_online = Category('How to Promote Your Business Online', 'Lessons for promoting your business online.','promote_your_business_online')
-#     beyond_cash = Category('How to Bring Your Business Beyond Cash Only', 'Lessons for bringing your business beyond cash only.','beyond_cash_only')
-#     how_to_city_better = Category('How to better live in the city', 'Lessons for using the internet to make living in the city easier and more fun.','how_to_city_better')
-#     fb_page_lesson = Lesson('How to create Facebook Page', 'Lesson on how to create a Facebook Page.','facebook_page', 1)
-#     twitter_lesson = Lesson('How to create a Twitter Account', 'Lesson on how to create a Twitter account.','twitter_account', 1)
-#     yelp_lesson = Lesson('How to use Yelp', 'Lessons for how to use Yelp','how_to_yelp', 3)
+    db.drop_all()
+    db.create_all()
+    promote_online = Category('How to Promote Your Business Online', 'Lessons for promoting your business online.','promote_your_business_online')
+    beyond_cash = Category('How to Bring Your Business Beyond Cash Only', 'Lessons for bringing your business beyond cash only.','beyond_cash_only')
+    how_to_city_better = Category('How to better live in the city', 'Lessons for using the internet to make living in the city easier and more fun.','how_to_city_better')
+    fb_page_lesson = Lesson('How to create Facebook Page', 'Lesson on how to create a Facebook Page.','facebook_page', 1)
+    twitter_lesson = Lesson('How to create a Twitter Account', 'Lesson on how to create a Twitter account.','twitter_account', 1)
+    yelp_lesson = Lesson('How to use Yelp', 'Lessons for how to use Yelp','how_to_yelp', 3)
+    foursquare_lesson = Lesson('How to use Foursquare for your business', 'Lesson on how to create and manage your business on Foursquare.','foursquare', 1)
 
-#     db.session.add(promote_online)
-#     db.session.add(beyond_cash)
-#     db.session.add(how_to_city_better)
-#     db.session.commit()
-#     db.session.add(fb_page_lesson)
-#     db.session.add(twitter_lesson)
-#     db.session.add(yelp_lesson)
-#     db.session.commit()
+    db.session.add(promote_online)
+    db.session.add(beyond_cash)
+    db.session.add(how_to_city_better)
+    db.session.commit()
+    db.session.add(fb_page_lesson)
+    db.session.add(twitter_lesson)
+    db.session.add(yelp_lesson)
+    db.session.add(foursquare_lesson)
+    db.session.commit()
 
 db.create_all()
 
@@ -142,32 +146,45 @@ def index():
 
 @app.route("/categories")
 def categories():
-    # categories = Category.query.all()
-    categories = call_how_to_city_api('categories')
+    categories = Category.query.all()
+    # categories = call_how_to_city_api('categories')
     return render_template('categories.html', categories=categories)
 
 @app.route("/category/<category_url>")
 def category(category_url):
-    # category = Category.query.filter_by(url=category_url).first()
-    # lessons = Lesson.query.filter_by(category_id=category.id).all()
-    category = call_how_to_city_api(endpoint='categories',column_name='url',operator='==',value=category_url,single=True)
-    lessons = call_how_to_city_api(endpoint='lessons',column_name='category_id', operator='==',value=category['id'])
+    category = Category.query.filter_by(url=category_url).first()
+    lessons = Lesson.query.filter_by(category_id=category.id).all()
+    # category = call_how_to_city_api(endpoint='categories',column_name='url',operator='==',value=category_url,single=True)
+    # lessons = call_how_to_city_api(endpoint='lessons',column_name='category_id', operator='==',value=category['id'])
     return render_template('lessons.html', category=category, lessons=lessons)
 
 @app.route("/category/<category_url>/lesson/<lesson_url>")
 def lesson(category_url, lesson_url):
-    # category = Category.query.filter_by(url=category_url).first()
-    # lesson = Lesson.query.filter_by(url=lesson_url).first()
-    category = call_how_to_city_api(endpoint='categories',column_name='url',operator='==',value=category_url,single=True)
-    lesson = call_how_to_city_api(endpoint='lessons',column_name='url',operator='==',value=lesson_url,single=True)
+    category = Category.query.filter_by(url=category_url).first()
+    lesson = Lesson.query.filter_by(url=lesson_url).first()
+    # category = call_how_to_city_api(endpoint='categories',column_name='url',operator='==',value=category_url,single=True)
+    # lesson = call_how_to_city_api(endpoint='lessons',column_name='url',operator='==',value=lesson_url,single=True)
     return render_template('lesson.html', category=category, lesson=lesson)
 
 @app.route("/category/<category_url>/lesson/<lesson_url>/instructions/<instructions_url>")
 def instructions(category_url, lesson_url, instructions_url):
-    # category = Category.query.filter_by(url=category_url).first()
-    # lesson = Lesson.query.filter_by(url=lesson_url).first()
-    ategory = call_how_to_city_api(endpoint='categories',column_name='url',operator='==',value=category_url,single=True)
-    lesson = call_how_to_city_api(endpoint='lessons',column_name='url',operator='==',value=lesson_url,single=True)
+    
+    category = Category.query.filter_by(url=category_url).first()
+    lesson = Lesson.query.filter_by(url=lesson_url).first()
+    # category = call_how_to_city_api(endpoint='categories',column_name='url',operator='==',value=category_url,single=True)
+    # lesson = call_how_to_city_api(endpoint='lessons',column_name='url',operator='==',value=lesson_url,single=True)
+
+    if instructions_url == 'foursquare_instructions':
+        import fs_oauth
+        foursquare_auth_url = fs_oauth.fs_oauth()
+        # import pdb; pdb.set_trace()
+        try:
+            auth_code = request.args['code']
+            user = fs_oauth.get_users_data(auth_code)
+            return str(user)
+        except:
+            pass
+        return render_template(instructions_url+'.html', category=category, lesson=lesson, foursquare_auth_url=foursquare_auth_url)
     return render_template(instructions_url+'.html', category=category, lesson=lesson)
 
 #----------------------------------------
@@ -177,3 +194,60 @@ def instructions(category_url, lesson_url, instructions_url):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

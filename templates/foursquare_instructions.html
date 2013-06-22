@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block head_js %}
+
+{% endblock %}
+
+{% block header %}
+<div class="navbar navbar-fixed-top">
+    <div class="header">
+        <div class="narrow">
+          <img src="{{ url_for('static', filename='img/header.jpg') }}">
+        </div>
+    </div>
+</div>
+
+
+<div class="inst_header">
+    <div class="narrow">
+        <h4>{{lesson.name}}</h4>
+        <div class="progress">
+            <div class="bar"></div>
+        </div>
+        <h5>Your Progress</h5>
+    </div>
+</div>
+{% endblock %}
+
+{% block main %}
+<div class="narrow">
+    <a class="back btn btn-large">Back</a>
+    <a class="next btn btn-large">Next</a>
+
+    <section id="link1">
+        <h2>Step 1</h2>
+        <p>Click the button below to log in to Foursquare.</p>
+        <p>If you already have a Foursquare account, please log in.</p>
+        <p>If you do not have a Foursquare account, click “sign up for Foursquare.”</p>
+        <a id="fsLoginBtn" class="btn btn-large" href="{{ foursquare_auth_url|safe }} ">Login to Foursquare</a>
+        <p>After logging in, you'll need to give the How to City app permission to talk to your Foursquare account. Don’t worry, we’re not posting anything on your profile or collect any information about you!</p>
+        <div class='feedback'>
+            <h2>You’re all set!</h2>
+            <p>You've logged in to Foursquare and given How to City the permission it needs to teach you how to create a Foursquare venue.<p>
+        </div>
+    </section>
+    <section id="link2">
+        <h2>Step 2</h2>
+        <p></p>
+        <div class='feedback'>
+            <h2>You’re all set!</h2>
+        </div>
+    </section>
+    <section id="link3">
+        <h2>Step 3</h2>
+        <p></p>
+        <div class='feedback'>
+            <h2>You’re all set!</h2>
+        </div>
+    </section>
+    <section id="link4">
+        <h2>Step 4</h2>
+        <p></p>
+        <div class='feedback'>
+            <h2>You’re all set!</h2>
+        </div>
+    </section>
+    <section id="link5">
+        <h2>Step 5</h2>
+        <p></p>
+        <div class='feedback'>
+            <h2>You’re all set!</h2>
+        </div>
+    </section>
+    <section id="link6">
+        <h2>Step 6</h2>
+        <p></p>
+        <div class='feedback'>
+            <h2>You’re all set!</h2>
+        </div>
+    </section>
+    <section id="link7">
+        <h2>Step 7</h2>
+        <p></p>
+        <div class='feedback'>
+            <h2>You’re all set!</h2>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block footer %}
+    <div class="inst_footer"></div>
+{% endblock %}
+
+{% block js_footer %}
+<script>
+    // var width = window.screen.width;
+    // var height = window.screen.height;
+
+    // var challengeSiteFeatures = {
+    //     height: height,
+    //     width: 1000,
+    //     name: 'challenge',
+    //     center: false
+    //   }
+
+    // $("#fsLoginBtn").click(function() {
+    //   var challengeWindow = $.popupWindow('{{ foursquare_auth_url|safe }}', challengeSiteFeatures);
+    // });
+</script>
+{% endblock %}
+     
+  </body>
+</html>
