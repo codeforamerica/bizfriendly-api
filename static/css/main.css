@@ -3,6 +3,7 @@
    ========================================================================== */
 body{
 	padding-top:160px;
+	padding-bottom:100px;
 }
 
 .category{
@@ -40,6 +41,15 @@ body{
 	display:block;
 }
 
+.inst_footer{
+	background-color: #000;
+	position: fixed;
+	bottom: 0px;
+	height: 100px;
+	width: 100%;
+	display: block;
+}
+
 section{
 	height:900px;
 }
@@ -54,8 +64,13 @@ section .btn{
 
 .feedback{
 	display: none;
-	padding-top: 100px;
+	padding-top: 15px;
 }
+
+.yes, .no {
+	display : none;
+}
+
 
 .feedback h2{
 	color: #347235;
@@ -74,9 +89,9 @@ section .btn{
 }
 
 .next{
-	position: fixed; bottom:5px;right:10px;
+	position: fixed; bottom:105px;right:10px;
 }
 
 .back{
-	position: fixed; bottom:5px;
+	position: fixed; bottom:105px;
 }

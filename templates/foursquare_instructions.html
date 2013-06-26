@@ -13,7 +13,6 @@
     </div>
 </div>
 
-
 <div class="inst_header">
     <div class="narrow">
         <h4>{{lesson.name}}</h4>
@@ -35,25 +34,38 @@
         <p>Click the button below to log in to Foursquare.</p>
         <p>If you already have a Foursquare account, please log in.</p>
         <p>If you do not have a Foursquare account, click “sign up for Foursquare.”</p>
-        <a id="fsLoginBtn" class="btn btn-large" href="{{ foursquare_auth_url|safe }} ">Login to Foursquare</a>
+        <a id="fsLoginBtn" class="btn btn-large" href="{{foursquare_auth_url|safe}}">Login to Foursquare</a>
         <p>After logging in, you'll need to give the How to City app permission to talk to your Foursquare account. Don’t worry, we’re not posting anything on your profile or collect any information about you!</p>
         <div class='feedback'>
-            <h2>You’re all set!</h2>
+            <h2>Hi {% if user %}{{ user.user.firstName }}{% endif %}!</h2>
             <p>You've logged in to Foursquare and given How to City the permission it needs to teach you how to create a Foursquare venue.<p>
         </div>
     </section>
     <section id="link2">
         <h2>Step 2</h2>
-        <p></p>
+        <p>How to City is going to open up the Foursquare website.</p>
+        <a id="open_foursquare" class="btn">Open up Foursqaure</a>
         <div class='feedback'>
-            <h2>You’re all set!</h2>
+            <h2>Let’s check it out!</h2>
         </div>
-    </section>
+   </section>
     <section id="link3">
         <h2>Step 3</h2>
-        <p></p>
+        <p>Search for your business on Foursquare.</p>
+        <p>Does your business have a page already?</p>
+        <a id="foursquare_yes" class="btn">Yes!</a>
+        <a id="foursquare_no" class="btn">No :(</a>
         <div class='feedback'>
-            <h2>You’re all set!</h2>
+            <div class='yes'>
+                <h2>Great!</h2>
+                <p>We'll take you to the next lesson now. It will show you how to Claim Ownership of your business on Foursquare.</p>
+                <a id="foursquare_claim_venue" class="btn" href="../../foursquare_claim_venue" target="parent">Next Foursquare Lesson</a>
+            </div>
+            <div class='no'>
+                <h2>Let make one!</h2>
+                <p>Click here to open up the right page on Foursquare.</p>
+                <a id="foursquare_create_venue" class="btn">Create Foursquare Venue</a>
+            </div>
         </div>
     </section>
     <section id="link4">
@@ -92,21 +104,15 @@
 {% endblock %}
 
 {% block js_footer %}
-<script>
-    // var width = window.screen.width;
-    // var height = window.screen.height;
+    <script src="{{ url_for('static', filename='js/foursquare.js') }}"></script>
+    {% if user %}
+    <script>
+    $('#link1 .feedback').toggle();
+    $('html, body').delay(3000).animate({ scrollTop: $('#link2').offset().top - body_padding }, 1000); 
+    </script>
+    {% endif %}
 
-    // var challengeSiteFeatures = {
-    //     height: height,
-    //     width: 1000,
-    //     name: 'challenge',
-    //     center: false
-    //   }
 
-    // $("#fsLoginBtn").click(function() {
-    //   var challengeWindow = $.popupWindow('{{ foursquare_auth_url|safe }}', challengeSiteFeatures);
-    // });
-</script>
 {% endblock %}
      
   </body>
