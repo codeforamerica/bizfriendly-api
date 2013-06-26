@@ -15,7 +15,7 @@ heroku = Heroku(app) # Sets CONFIG automagically
 db = SQLAlchemy(app)
 
 app.config.update(
-    # DEBUG = True,
+    DEBUG = True,
     # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity'
 )
 
