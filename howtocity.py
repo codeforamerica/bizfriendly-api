@@ -1,4 +1,4 @@
-import os, requests, json
+import os, requests, json, foursquare_lesson
 from flask import Flask, render_template, send_from_directory, request
 from flask.ext.sqlalchemy import SQLAlchemy
 import flask.ext.restless
@@ -15,8 +15,9 @@ heroku = Heroku(app) # Sets CONFIG automagically
 db = SQLAlchemy(app)
 
 app.config.update(
+    API_OR_DB = 'DB',
     DEBUG = True,
-    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity'
+    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity'
 )
 
 #----------------------------------------
@@ -57,22 +58,21 @@ class Step(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode, unique=True)
     description = db.Column(db.Unicode)
-    # url = db.Column(db.Unicode)
+    url = db.Column(db.Unicode)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'))
 
-    def __init__(self, name, description, url):
+    def __init__(self, name, description, url, lesson_id):
         self.name = name
         self.description = description
-        # self.url = url
-        # self.lesson_id = lesson_id
+        self.url = url
+        self.lesson_id = lesson_id
 
     def __repr__(self):
         return '<Step %r>' % self.name
 
 
 # # Create the database tables.
-if app.config['DEBUG']:
-
+def update_tables():
     db.drop_all()
     db.create_all()
     promote_online = Category('How to Promote Your Business Online', 'Lessons for promoting your business online.','promote_your_business_online')
@@ -83,7 +83,7 @@ if app.config['DEBUG']:
     yelp_lesson = Lesson('How to use Yelp', 'Lessons for how to use Yelp','how_to_yelp', 3)
     foursquare_lesson = Lesson('How to use Foursquare for your business', 'Lesson on how to create your business on Foursquare.','foursquare', 1)
     foursquare_lesson_2 = Lesson('How to use Foursquare for your business, Part 2', 'Lesson on how to manage your business on Foursquare.','foursquare_claim_venue', 1)
-
+    # fs_step1 = Step('Foursquare Step 1','Click the button below to log in to Foursquare.','fs_step_1',4)
     db.session.add(promote_online)
     db.session.add(beyond_cash)
     db.session.add(how_to_city_better)
@@ -94,8 +94,11 @@ if app.config['DEBUG']:
     db.session.add(foursquare_lesson)
     db.session.add(foursquare_lesson_2)
     db.session.commit()
+    # db.session.add(fs_step1)
+    db.session.commit()
 
-db.create_all()
+# Uncomment to update the database tables.
+# update_tables()
 
 # Create the Flask-Restless API manager.
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
@@ -112,7 +115,9 @@ manager.create_api(Step, methods=['GET', 'POST', 'DELETE'], url_prefix='/api/v1'
 
 def get_how_to_city_api_url():
     api_version = 'v1'
-    how_to_city_api_url = request.url_root+'api/'+api_version+'/'
+    # url = request.url_root
+    url = 'http://127.0.0.1:8000/'
+    how_to_city_api_url = url+'api/'+api_version+'/'
     return how_to_city_api_url
 
 def call_how_to_city_api(endpoint, column_name=None, operator=None, value=None, single=False):
@@ -145,37 +150,57 @@ def page_not_found(e):
 def index():
     return render_template('index.html')
 
-@app.route("/categories")
-def categories():
-    categories = Category.query.all()
-    # categories = call_how_to_city_api('categories')
-    return render_template('categories.html', categories=categories)
-
-@app.route("/category/<category_url>")
+@app.route("/<category_url>")
 def category(category_url):
-    category = Category.query.filter_by(url=category_url).first()
-    lessons = Lesson.query.filter_by(category_id=category.id).all()
-    # category = call_how_to_city_api(endpoint='categories',column_name='url',operator='==',value=category_url,single=True)
-    # lessons = call_how_to_city_api(endpoint='lessons',column_name='category_id', operator='==',value=category['id'])
+    if app.config['API_OR_DB'] == 'DB':
+        category = Category.query.filter_by(url=category_url).first()
+        lessons = Lesson.query.filter_by(category_id=category.id).all()
+    else:
+        category = call_how_to_city_api(endpoint='categories',column_name='url',operator='==',value=category_url,single=True)
+        lessons = call_how_to_city_api(endpoint='lessons',column_name='category_id', operator='==',value=category['id'])
     return render_template('lessons.html', category=category, lessons=lessons)
 
-@app.route("/category/<category_url>/lesson/<lesson_url>")
+@app.route("/categories")
+def categories():
+    if app.config['API_OR_DB'] == 'DB':
+        categories = Category.query.all()
+    else:
+        categories = call_how_to_city_api('categories')
+    return render_template('categories.html', categories=categories)
+
+@app.route("/lessons")
+def lessons():
+    if app.config['API_OR_DB'] == 'DB':
+        categories = Category.query.all()
+        lessons = Lesson.query.all()
+    else:
+        categories = call_how_to_city_api('categories')
+        lessons = call_how_to_city_api('lessons')
+    return render_template('all_lessons.html', categories=categories,lessons=lessons)
+
+@app.route("/<category_url>/<lesson_url>")
 def lesson(category_url, lesson_url):
-    category = Category.query.filter_by(url=category_url).first()
-    lesson = Lesson.query.filter_by(url=lesson_url).first()
-    # category = call_how_to_city_api(endpoint='categories',column_name='url',operator='==',value=category_url,single=True)
-    # lesson = call_how_to_city_api(endpoint='lessons',column_name='url',operator='==',value=lesson_url,single=True)
+    if app.config['API_OR_DB'] == 'DB':
+        category = Category.query.filter_by(url=category_url).first()
+        lesson = Lesson.query.filter_by(url=lesson_url).first()
+    else:
+        category = call_how_to_city_api(endpoint='categories',column_name='url',operator='==',value=category_url,single=True)
+        lesson = call_how_to_city_api(endpoint='lessons',column_name='url',operator='==',value=lesson_url,single=True)
     return render_template('lesson.html', category=category, lesson=lesson)
 
-@app.route("/category/<category_url>/lesson/<lesson_url>/instructions/<instructions_url>")
+@app.route("/<category_url>/<lesson_url>/instructions/<instructions_url>", methods=['GET', 'POST'])
 def instructions(category_url, lesson_url, instructions_url):
-    category = Category.query.filter_by(url=category_url).first()
-    lesson = Lesson.query.filter_by(url=lesson_url).first()
-    # category = call_how_to_city_api(endpoint='categories',column_name='url',operator='==',value=category_url,single=True)
-    # lesson = call_how_to_city_api(endpoint='lessons',column_name='url',operator='==',value=lesson_url,single=True)
-    
+    if app.config['API_OR_DB'] == 'DB':
+        category = Category.query.filter_by(url=category_url).first()
+        lesson = Lesson.query.filter_by(url=lesson_url).first()
+        # steps = Step.query.filter_by(lesson_id=lesson.id).all()
+    else:
+        category = call_how_to_city_api(endpoint='categories',column_name='url',operator='==',value=category_url,single=True)
+        lesson = call_how_to_city_api(endpoint='lessons',column_name='url',operator='==',value=lesson_url,single=True)
+        # steps = call_how_to_city_api(endpoint='steps',column_name='lesson_id',operator='==',value=lesson['id'])
+
+    # Foursquare Instructions
     if instructions_url == 'foursquare_instructions':
-        import foursquare_lesson
         foursquare_auth_url = None
         access_token = None
         if 'code' in request.args:
@@ -188,7 +213,15 @@ def instructions(category_url, lesson_url, instructions_url):
             # Authorize
             foursquare_auth_url = foursquare_lesson.foursquare_oauth()
             return render_template(instructions_url+'.html', category=category, lesson=lesson, foursquare_auth_url=foursquare_auth_url)
-        return render_template(instructions_url+'.html', category=category, lesson=lesson)
+    
+    return render_template(instructions_url+'.html', category=category, lesson=lesson)
+
+@app.route("/foursquare/venue/<venue_id>")
+def get_venue(venue_id):
+    venue = foursquare_lesson.venue_api(venue_id)
+    venue = json.dumps(venue)
+    return venue
+
 
 #----------------------------------------
 # launch

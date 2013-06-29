@@ -46,27 +46,6 @@ $('.next').click(function() {
 
 // Steps Functions ----------------------------------------------------------------------------------------
 
-// var checkStep1 = function(){
-//     if (debug){
-//         console.log('Step 1 running');
-//       }
-//       // Can this script see jinja2 variables?
-//     if (whichStep >= 1 && {{ 'user' }}){
-//       clearInterval(t1);
-//       if (debug){
-//         console.log('Step 1 stopped');
-//       }
-
-//       // Show the feedback
-//       $('#link1 .feedback').toggle();
-
-//       if (whichStep == 1){
-//         $('html, body').delay(3000).animate({ scrollTop: $('#link2').offset().top - body_padding }, 1000); 
-//       }
-//     }
-//   }
-//   var t1 = setInterval(checkStep1,1000);
-
 // When we get to step 2, open up the challenge window
   var width = window.screen.width;
   var height = window.screen.height;
@@ -111,3 +90,26 @@ $('.next').click(function() {
     challengeWindow = $.popupWindow('https://foursquare.com/add_venue', challengeSiteFeatures);
     $('html, body').delay(3000).animate({ scrollTop: $('#link4').offset().top - body_padding }, 1000); 
   })
+
+var thirdSiteFeatures = {
+    height: height,
+    width: 1000,
+    name: 'third',
+    center: false
+  }
+
+$('#foursquare_style_guide').click(function(){
+  console.log('style guide btn');
+    thirdWindow = $.popupWindow('http://aboutfoursquare.com/style-guide/', thirdSiteFeatures);
+    $('#foursquare_style_guide').toggle();
+    $('#close_style_guide').toggle();
+  })
+  
+  $('#close_style_guide').click(function(){
+  thirdWindow.close();
+  $('#close_style_guide').toggle();
+  $('#foursquare_style_guide').toggle();
+  })
+
+
+  

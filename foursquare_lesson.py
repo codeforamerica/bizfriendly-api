@@ -1,12 +1,12 @@
 import foursquare, sys, logging
-from flask import Flask, render_template, send_from_directory, request
+from flask import render_template, request
 loghandler = logging.StreamHandler(stream=sys.stdout)
 foursquare.log.addHandler(loghandler)
 foursquare.log.setLevel(logging.DEBUG)
 
 client_id = 'IRVYNL0DUD5HDFNSCPPFU1PPERAZSVHBVTTRUUF2AA5EPB1A'
 client_secret = '4B0NEIC2YBADH4HHDELEABVIEDJXN4YJYZ2KCOSXXKDYH0BT'
-redirect_uri = 'http://0.0.0.0:5000/category/promote_your_business_online/lesson/foursquare/instructions/foursquare_instructions'
+redirect_uri = 'http://0.0.0.0:5000/promote_your_business_online/foursquare/instructions/foursquare_instructions'
 
 def foursquare_oauth():
 	# Construct the client object
@@ -31,14 +31,7 @@ def get_user_data(access_token):
 	user = client.users()
 	return user
 
-	# # foursquare_auth_url = fs_oauth.fs_oauth()
- #        # # import pdb; pdb.set_trace()
- #        try:
- #            auth_code = request.args['code']
- #            return auth_code
- #            # user = fs_oauth.get_users_data(auth_code)
- #            # return str(user)
- #        except:
- #            pass
- #        # return render_template(instructions_url+'.html', 
- #            # category=category, lesson=lesson, foursquare_auth_url=foursquare_auth_url)
+def venue_api(venue_id):
+	client = foursquare.Foursquare(client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri)
+	venue = client.venues(venue_id)
+	return venue

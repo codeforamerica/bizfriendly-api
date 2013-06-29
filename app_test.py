@@ -1,9 +1,9 @@
-import app, unittest
+import howtocity, unittest, requests, json
 
 class AppTestCase(unittest.TestCase):
 
 	def setUp(self):
-		self.app = app.app.test_client()
+		self.app = howtocity.app.test_client()
 
 	def tearDown(self):
 		pass
@@ -15,20 +15,24 @@ class AppTestCase(unittest.TestCase):
 		rv = self.app.get('/categories')
 		assert rv.status_code == 200
 
+	def test_lessons(self):
+		rv = self.app.get('/lessons')
+		assert rv.status_code == 200
+
 	def test_category(self):
-		rv = self.app.get('/category/promote_your_business_online')
+		rv = self.app.get('/promote_your_business_online')
 		assert rv.status_code == 200
 
 	def test_lesson(self):
-		rv = self.app.get('/category/promote_your_business_online/lesson/facebook_page')
+		rv = self.app.get('/promote_your_business_online/facebook_page')
 		assert rv.status_code == 200
 
 	def test_instructions(self):
-		rv = self.app.get('/category/promote_your_business_online/lesson/facebook_page/facebook_page_instructions')
+		rv = self.app.get('/promote_your_business_online/facebook_page/instructions/facebook_page_instructions')
 		assert rv.status_code == 200
 
 	def test_category_model(self):
-		categories = app.Category.query.all()
+		categories = howtocity.Category.query.all()
 		assert isinstance(categories, list)
 		assert categories[0].id
 		assert categories[0].name
@@ -36,7 +40,7 @@ class AppTestCase(unittest.TestCase):
 		assert categories[0].url
 
 	def test_lesson_model(self):
-		lessons = app.Lesson.query.all()
+		lessons = howtocity.Lesson.query.all()
 		assert isinstance(lessons, list)
 		assert lessons[0].id
 		assert lessons[0].name
@@ -53,6 +57,17 @@ class AppTestCase(unittest.TestCase):
 	# 	assert steps[0].url
 	# 	assert steps[0].category_id
 
+	def test_api_categories(self):
+		rv = self.app.get('/api/v1/categories')
+		assert rv.status_code == 200
+		rv_json = json.loads(rv.data)
+		assert isinstance(rv_json['objects'], list)
+
+	def test_api_lessons(self):
+		rv = self.app.get('/api/v1/lessons')
+		assert rv.status_code == 200
+		rv_json = json.loads(rv.data)
+		assert isinstance(rv_json['objects'], list)
 
 if __name__ == '__main__':
 	unittest.main()

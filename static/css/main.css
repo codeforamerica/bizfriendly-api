@@ -67,10 +67,13 @@ section .btn{
 	padding-top: 15px;
 }
 
-.yes, .no {
+.yes, .no, #close_style_guide {
 	display : none;
 }
 
+.tips {
+	text-align: right;
+}
 
 .feedback h2{
 	color: #347235;
@@ -93,5 +96,5 @@ section .btn{
 }
 
 .back{
-	position: fixed; bottom:105px;
+	position: fixed; bottom:105px; right: 100px;
 }

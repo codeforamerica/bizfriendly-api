@@ -1,18 +1,11 @@
-{% extends "base.html" %}
+{% extends "instructions.html" %}
 
 {% block head_js %}
-
+    
 {% endblock %}
 
 {% block header %}
-<div class="navbar navbar-fixed-top">
-    <div class="header">
-        <div class="narrow">
-          <img src="{{ url_for('static', filename='img/header.jpg') }}">
-        </div>
-    </div>
-</div>
-
+{{ super() }}
 <div class="inst_header">
     <div class="narrow">
         <h4>{{lesson.name}}</h4>
@@ -25,10 +18,8 @@
 {% endblock %}
 
 {% block main %}
+{{ super() }}
 <div class="narrow">
-    <a class="back btn btn-large">Back</a>
-    <a class="next btn btn-large">Next</a>
-
     <section id="link1">
         <h2>Step 1</h2>
         <p>Click the button below to log in to Foursquare.</p>
@@ -62,7 +53,7 @@
                 <a id="foursquare_claim_venue" class="btn" href="../../foursquare_claim_venue" target="parent">Next Foursquare Lesson</a>
             </div>
             <div class='no'>
-                <h2>Let make one!</h2>
+                <h2>Lets make one!</h2>
                 <p>Click here to open up the right page on Foursquare.</p>
                 <a id="foursquare_create_venue" class="btn">Create Foursquare Venue</a>
             </div>
@@ -70,37 +61,37 @@
     </section>
     <section id="link4">
         <h2>Step 4</h2>
-        <p></p>
+        <p>Enter your business name and address.</p>
+        <p>Here are some tips from Foursquare about this step.</p>
+        <img src="{{ url_for('static', filename='img/foursquare_instructions.png') }}">
+        <p>Move the pin on the map if you need to.</p>
+        <p>Enter your phone and twitter if you want.</p>
+        <p>Choose a category for your business.</p>
+        <div class="tips">
+            Want to read the Style Guide first?
+            <a id="foursquare_style_guide" class="btn">Foursquare Style Guide</a>
+            <a id="close_style_guide" class="btn">Close Style Guide</a>
+        </div>
+        <p>
         <div class='feedback'>
-            <h2>You’re all set!</h2>
+            <h2>When you've finished making your venue, click next here.</h2>
         </div>
     </section>
     <section id="link5">
         <h2>Step 5</h2>
-        <p></p>
+        <p>To let us know what vusiness you just added to Foursquare, copy and paste the venue's id into the box.</p>
+        <form>
+            <input type="text" id="venue_id" class="input-xlarge" placeholder="4d1a21edbb488cfa8dc9c2d4">
+            <a id="submit" class='btn'>Submit</a>
+        </form>
+
         <div class='feedback'>
-            <h2>You’re all set!</h2>
-        </div>
-    </section>
-    <section id="link6">
-        <h2>Step 6</h2>
-        <p></p>
-        <div class='feedback'>
-            <h2>You’re all set!</h2>
-        </div>
-    </section>
-    <section id="link7">
-        <h2>Step 7</h2>
-        <p></p>
-        <div class='feedback'>
-            <h2>You’re all set!</h2>
+           <p>Rad!</p>
+            <p>The next lesson will teach you how to claim ownership of this venue.</p>
+            <a id="foursquare_claim_venue" class="btn" href="../../foursquare_claim_venue" target="parent">Next Foursquare Lesson</a>
         </div>
     </section>
 </div>
-{% endblock %}
-
-{% block footer %}
-    <div class="inst_footer"></div>
 {% endblock %}
 
 {% block js_footer %}
@@ -108,12 +99,20 @@
     {% if user %}
     <script>
     $('#link1 .feedback').toggle();
-    $('html, body').delay(3000).animate({ scrollTop: $('#link2').offset().top - body_padding }, 1000); 
+    $('html, body').delay(3000).animate({ scrollTop: $('#link2').offset().top - body_padding }, 1000);
     </script>
     {% endif %}
-
-
+    <script>
+    $('#submit').click(function(){
+        var venue_id = $('#venue_id').val();
+        console.log(typeof(venue_id));
+        $.getJSON('http://0.0.0.0:5000/foursquare/venue/'+venue_id, function(venue){
+            console.log(venue.venue.name);
+            $('#link5 .feedback').prepend('<h2>'+venue.venue.name+'</h2>')
+            $('#link5 .feedback').toggle()
+        });
+        
+    })
+    
+    </script>
 {% endblock %}
-     
-  </body>
-</html>

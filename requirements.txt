@@ -2,7 +2,6 @@ Flask==0.9
 Flask-OAuth==0.12
 Flask-Restless==0.10.1
 Flask-SQLAlchemy==0.16
-Flask-SSLify==0.1.4
 Jinja2==2.6
 SQLAlchemy==0.8.1
 Werkzeug==0.8.3

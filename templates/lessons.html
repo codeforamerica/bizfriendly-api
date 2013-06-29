@@ -20,7 +20,7 @@
         <ul class="thumbnails">
           {% for lesson in lessons %}
             <li class="span4">
-              <a href="{{ category.url }}/lesson/{{ lesson.url }}">
+              <a href="{{ category.url }}/{{ lesson.url }}">
                 <h4>{{ lesson.name }}</h4>
                 <p>{{ lesson.description }}</p>
               </a>

@@ -1,22 +1,11 @@
-{% extends "base.html" %}
+{% extends "instructions.html" %}
 
 {% block head_js %}
     <script src="http://connect.facebook.net/en_US/all.js"></script>
 {% endblock %}
 
-<div id="fb-root"></div>
-
 {% block header %}
-
-<div class="navbar navbar-fixed-top">
-    <div class="header">
-        <div class="narrow">
-          <img src="{{ url_for('static', filename='img/header.jpg') }}">
-        </div>
-    </div>
-</div>
-
-
+{{ super() }}
 <div class="inst_header">
     <div class="narrow">
         <h4>{{lesson.name}}</h4>
@@ -26,14 +15,11 @@
         <h5>Your Progress</h5>
     </div>
 </div>
-
 {% endblock %}
 
 {% block main %}
+{{ super() }}
 <div class="narrow">
-    <a class="back btn btn-large">Back</a>
-    <a class="next btn btn-large">Next</a>
-
     <section id="link1">
         <h2>Step 1</h2>
         <p>Click the button below to log in to Facebook.</p>
@@ -99,13 +85,10 @@
         <p>Thanks for taking How to City for a test drive. We'd love to get your feedback to help make it truly great.</p>
         <a class='btn btn-large' href="https://docs.google.com/a/codeforamerica.org/forms/d/1uaf51wqkJDPH4JaDm_9RD1Nk0pc7BECzdx_nHQ1VFug/viewform" target="_blank">Give Feedback</a>
     </section>
-</div>
+</div><!--/narrow-->
 {% endblock %}
-
     
 {% block js_footer %}
-      <script src="{{ url_for('static', filename='js/facebook_page.js') }}"></script>
+    <div id="fb-root"></div>
+    <script src="{{ url_for('static', filename='js/facebook_page.js') }}"></script>
 {% endblock %}
-     
-  </body>
-</html>

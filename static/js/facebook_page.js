@@ -172,7 +172,11 @@ $(document).ready(function(){
         console.log('Step 2 finished.');
       }
       $("#fb_pages").click(function(){
-        challengeWindow = $.popupWindow('https://www.facebook.com/pages/create/', challengeSiteFeatures);
+        var windowObjectReference;
+        var strWindowFeatures = "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
+
+          windowObjectReference = window.open("categories", "CNN_WindowName", strWindowFeatures);
+
         setTimeout(function(){
           // Show the feedback
           $('#link2 .feedback').toggle();
@@ -180,6 +184,10 @@ $(document).ready(function(){
         if (whichStep == 2){
           $('html, body').delay(3000).animate({ scrollTop: $('#link3').offset().top - body_padding }, 1000); 
         }
+        // See if I can keep track of what url is in the chalengeWindow.
+        setInterval(function(){
+          console.log(windowObjectReference.name);
+        }, 5000);
       })
     }
   }

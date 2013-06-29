@@ -9,7 +9,8 @@
       <meta name="author" content="">
       <meta charset="utf-8">
 
-      <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" rel="stylesheet">
+      <!-- <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap.css" rel="stylesheet"> -->
+      <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
 
       <!-- <link href="http://twitter.github.com/bootstrap/assets/css/bootstrap-responsive.css" rel="stylesheet"> -->
       <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
@@ -21,7 +22,9 @@
 
       <link rel="shortcut icon" href="{{ url_for('static', filename='ico/favicon.ico') }}">
 
-      <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+      <!--
+      <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> -->
+      <script src="{{ url_for('static', filename='js/vendor/jquery-1.9.1.min.js') }}"></script>
       <script src="{{ url_for('static', filename='js/vendor/jquery.popupwindow.js') }}"></script>
       {% block head_js %}
       {% endblock %}
@@ -35,16 +38,15 @@
     {% block main %}
     {% endblock %}
 
-
-    {% block js_footer %}
-    {% endblock %}
-
     {% block footer %}
     <footer class="footer container">
       <p>&copy; How to City</p>
     </footer>
     {% endblock %}
 
-    <script src="http://twitter.github.com/bootstrap/assets/js/bootstrap.js"></script>
   </body>
+  <script src="{{ url_for('static', filename='js/vendor/bootstrap.min.js') }}"></script>
+  {% block js_footer %}
+  {% endblock %}
+
 </html>
