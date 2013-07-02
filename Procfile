@@ -1,2 +1,1 @@
-web: gunicorn -w 3 app:app
-
+web: gunicorn -w 2 howtocity:app

@@ -45,6 +45,19 @@ $('.next').click(function() {
 });
 
 // Steps Functions ----------------------------------------------------------------------------------------
+  
+var checkStep1 = function(){
+  if (whichStep > 1){
+    clearInterval(t1);
+  }
+  if (whichStep == 1){
+    if ($('#link1 .feedback').css('display') != 'none'){
+      $('html, body').delay(3000).animate({ scrollTop: $('#link2').offset().top - body_padding }, 1000);
+    }
+  }
+}
+  
+var t1 = setInterval(checkStep1,1000);
 
 // When we get to step 2, open up the challenge window
   var width = window.screen.width;
@@ -71,6 +84,7 @@ $('.next').click(function() {
     $('#link3 .feedback').toggle();
     $('#link3 .feedback .yes').toggle();
   })
+
 
   $("#foursquare_claim_venue").click(function(){
     $('#link3 .feedback').append('<h3>Goodbye.</h3>')
@@ -110,6 +124,3 @@ $('#foursquare_style_guide').click(function(){
   $('#close_style_guide').toggle();
   $('#foursquare_style_guide').toggle();
   })
-
-
-  

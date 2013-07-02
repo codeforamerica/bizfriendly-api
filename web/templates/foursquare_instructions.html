@@ -1,7 +1,6 @@
 {% extends "instructions.html" %}
 
 {% block head_js %}
-    
 {% endblock %}
 
 {% block header %}
@@ -49,8 +48,12 @@
         <div class='feedback'>
             <div class='yes'>
                 <h2>Great!</h2>
-                <p>We'll take you to the next lesson now. It will show you how to Claim Ownership of your business on Foursquare.</p>
-                <a id="foursquare_claim_venue" class="btn" href="../../foursquare_claim_venue" target="parent">Next Foursquare Lesson</a>
+                <p>Save your business to your ToDo list!</p>
+                <img src="{{ url_for('static', filename='img/fs_todo_button.png') }}">
+
+
+                <!-- <p>We'll take you to the next lesson now. It will show you how to Claim Ownership of your business on Foursquare.</p>
+                <a id="foursquare_claim_venue" class="btn" href="../../foursquare_claim_venue" target="parent">Next Foursquare Lesson</a> -->
             </div>
             <div class='no'>
                 <h2>Lets make one!</h2>
@@ -97,22 +100,19 @@
 {% block js_footer %}
     <script src="{{ url_for('static', filename='js/foursquare.js') }}"></script>
     {% if user %}
-    <script>
-    $('#link1 .feedback').toggle();
-    $('html, body').delay(3000).animate({ scrollTop: $('#link2').offset().top - body_padding }, 1000);
-    </script>
+        <script>
+            $('#link1 .feedback').toggle();
+        </script>
     {% endif %}
     <script>
     $('#submit').click(function(){
         var venue_id = $('#venue_id').val();
         console.log(typeof(venue_id));
-        $.getJSON('http://0.0.0.0:5000/foursquare/venue/'+venue_id, function(venue){
-            console.log(venue.venue.name);
-            $('#link5 .feedback').prepend('<h2>'+venue.venue.name+'</h2>')
-            $('#link5 .feedback').toggle()
-        });
-        
+        $.getJSON('{{request.url_root}}/foursquare/venue/'+venue_id, function(venue){
+                $('#link5 .feedback').prepend('<h2>'+venue.venue.name+'</h2>')
+                $('#link5 .feedback').toggle()
+            }
+        );
     })
-    
     </script>
 {% endblock %}
