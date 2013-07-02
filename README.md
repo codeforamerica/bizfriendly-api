@@ -1,45 +1,27 @@
-[![Build Status](https://travis-ci.org/codeforamerica/howtocity.png)](https://travis-ci.org/codeforamerica/howtocity)
-
-How to City
+How to City API
 =========
 
 How to City teaches you how to use the internet to increase your quality of life, be more effecient at work, and perhaps even how to be a better citizen.
 
 ## <a name="about"></a>About
-
-How to City is a training platform to teach others how to use the latest in web services. 
-
-#### Why does How to City exist?
-
-
-## <a name="screenshots"></a>Screenshot
+This is the API that powers the various How to City applications.
 
 ## <a name="demo"></a>Demo
-You can see a running version of the application at http://howtocity.herokuapp.com
+Some example API calls:
+	`http://howtocity.herokuapp.com/api/v1/categories`
+	`http://howtocity.herokuapp.com/api/v1/lessons`
+	`http://howtocity.herokuapp.com/api/v1/steps`
 
 ## <a name="development-setup"></a>Development Setup
 
 How to City is written in Python, and runs as a standalone [Flask application](http://flask.pocoo.org/).
 
-1. Set up [virtual environment](http://www.virtualenv.org/en/latest/#usage).
-
-   `virtualenv --no-site-packages venv`
-
-2. Install requirements.
-
-   `pip install -r requirements.txt`
-
-3. Activate virtual environment in current shell:
-
-    (in bash) `source venv/bin/activate`
-
-    (…or csh/tcsh) `source venv/bin/activate.csh`
+1. Run a virtual environment and install all the requirements.
+	`source setup.sh`
 
 4. Run application on [localhost port 5000](http://127.0.0.1:5000]):
 
-    `python app.py`
-
-## <a name="usage"></a>Usage
+    `python runserver.py`
 
 ## <a name="contributing"></a>Contributing
 In the spirit of [free software][free-sw], **everyone** is encouraged to help
