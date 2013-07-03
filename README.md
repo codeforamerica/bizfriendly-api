@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/codeforamerica/howtocity-api.png)](https://travis-ci.org/codeforamerica/howtocity-api)
+
 How to City API
 =========
 
@@ -19,7 +21,7 @@ How to City is written in Python, and runs as a standalone [Flask application](h
 1. Run a virtual environment and install all the requirements.
 	`source setup.sh`
 
-4. Run application on [localhost port 5000](http://127.0.0.1:5000]):
+2. Run application on [localhost port 5000](http://127.0.0.1:5000]):
 
     `python runserver.py`
 
