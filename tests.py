@@ -49,7 +49,5 @@ class howtocity_api_tester(unittest.TestCase):
 		r = requests.get(self.api_url+'/admin')
 		assert(r.headers['content-type']) == 'text/html; charset=utf-8'
 
-
-
 if __name__ == '__main__':
 	unittest.main()
