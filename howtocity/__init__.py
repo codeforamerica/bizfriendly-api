@@ -55,7 +55,7 @@ class Lesson(db.Model):
     description = db.Column(db.Unicode)
     url = db.Column(db.Unicode)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
-    category = db.relationship('Category', backref=db.backref('category', lazy='dynamic'))
+    category = db.relationship('Category', backref=db.backref('lessons', lazy='dynamic'))
 
     def __init__(self, name=None, description=None, url=None, category=None):
         self.name = name
@@ -72,7 +72,7 @@ class Step(db.Model):
     description = db.Column(db.Unicode)
     url = db.Column(db.Unicode)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'))
-    lesson = db.relationship('Lesson', backref=db.backref('lesson', lazy='dynamic'))
+    lesson = db.relationship('Lesson', backref=db.backref('steps', lazy='dynamic'))
 
     def __init__(self, name=None, description=None, url=None, lesson=None):
         self.name = name
