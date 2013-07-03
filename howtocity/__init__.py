@@ -27,6 +27,7 @@ def add_cors_header(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept'
     response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['content-type'] = 'application/json'
     return response
 
 app.after_request(add_cors_header)
