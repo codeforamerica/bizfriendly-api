@@ -16,12 +16,20 @@ heroku = Heroku(app) # Sets CONFIG automagically
 # app.config.update(
 # 	DEBUG = True,
 # 	SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
-#     SECRET_KEY = 123456
+#     SECRET_KEY = '123456'
 # )
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
 db = SQLAlchemy(app)
+
+def add_cors_header(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
+
+app.after_request(add_cors_header)
 
 #----------------------------------------
 # models
