@@ -13,13 +13,13 @@ from flask.ext.heroku import Heroku
 app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
-# app.config.update(
-# 	DEBUG = True,
-# 	SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
-#     SECRET_KEY = '123456'
-# )
+app.config.update(
+	DEBUG = True,
+	SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    SECRET_KEY = '123456'
+)
 
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+# app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
 db = SQLAlchemy(app)
 
@@ -28,6 +28,8 @@ def add_cors_header(response):
     return response
 
 app.after_request(add_cors_header)
+
+import oauth_logins
 
 #----------------------------------------
 # models
@@ -71,12 +73,18 @@ class Step(db.Model):
     url = db.Column(db.Unicode)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'))
     lesson = db.relationship('Lesson', backref=db.backref('steps', lazy='dynamic'))
+    step_text = db.Column(db.Unicode)
+    step_trigger = db.Column(db.Unicode)
+    step_feedback = db.Column(db.Unicode)
 
-    def __init__(self, name=None, description=None, url=None, lesson=None):
+    def __init__(self, name=None, description=None, url=None, lesson=None, step_text=None, step_trigger=None, step_feedback=None):
         self.name = name
         self.description = description
         self.url = url
         self.lesson = lesson
+        self.step_text = step_text
+        self.step_trigger = step_trigger
+        self.step_feedback = step_feedback
 
     def __repr__(self):
         return self.name
