@@ -5,6 +5,8 @@ import flask.ext.restless
 from flask.ext.admin.contrib.sqlamodel import ModelView
 from flask.ext.admin import Admin
 from flask.ext.heroku import Heroku
+from flask import request, redirect
+import foursquare_lesson
 
 #----------------------------------------
 # initialization
@@ -29,7 +31,7 @@ def add_cors_header(response):
 
 app.after_request(add_cors_header)
 
-import oauth_logins
+# import oauth_logins
 
 #----------------------------------------
 # models
@@ -74,17 +76,23 @@ class Step(db.Model):
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'))
     lesson = db.relationship('Lesson', backref=db.backref('steps', lazy='dynamic'))
     step_text = db.Column(db.Unicode)
-    step_trigger = db.Column(db.Unicode)
-    step_feedback = db.Column(db.Unicode)
+    trigger_endpoint = db.Column(db.Unicode)
+    trigger_check = db.Column(db.Unicode)
+    trigger_value = db.Column(db.Unicode)
+    feedback = db.Column(db.Unicode)
+    next_step = db.Column(db.Unicode)
 
-    def __init__(self, name=None, description=None, url=None, lesson=None, step_text=None, step_trigger=None, step_feedback=None):
+    def __init__(self, name=None, description=None, url=None, lesson=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, feedback=None, next_step=None):
         self.name = name
         self.description = description
         self.url = url
         self.lesson = lesson
         self.step_text = step_text
-        self.step_trigger = step_trigger
-        self.step_feedback = step_feedback
+        self.trigger_endpoint = trigger_endpoint
+        self.trigger_check = trigger_check
+        self.trigger_value = trigger_value
+        self.feedback = feedback
+        self.next_step = next_step
 
     def __repr__(self):
         return self.name
@@ -112,3 +120,24 @@ class StepView(ModelView):
 admin.add_view(CategoryView(Category, db.session))
 admin.add_view(LessonView(Lesson, db.session))
 admin.add_view(StepView(Step, db.session))
+
+# Foursquare ------------------------------------------------------------
+
+@app.route('/foursquare/login')
+def foursquare_login():
+    foursquare_auth_url = foursquare_lesson.foursquare_oauth()
+    return redirect(foursquare_auth_url)
+
+@app.route('/foursquare/code')
+def foursquare_code():
+    auth_code = request.args['code']
+    access_token = foursquare_lesson.get_access_token(auth_code)
+    return 'WHAT' #'<script>window.close()</script>'
+
+@app.route('/foursquare/loggedin/<access_token>')
+def foursquare_loggedin(access_token):
+    user = foursquare_lesson.get_user_data(access_token)
+    if user:
+        return '{"loggedIn":true}'
+    else:
+        return '{"loggedIn":false}'
