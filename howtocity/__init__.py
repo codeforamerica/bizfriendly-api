@@ -6,7 +6,6 @@ from flask.ext.admin.contrib.sqlamodel import ModelView
 from flask.ext.admin import Admin
 from flask.ext.heroku import Heroku
 from flask import request, redirect
-import foursquare_lesson
 
 #----------------------------------------
 # initialization
@@ -15,13 +14,13 @@ import foursquare_lesson
 app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
-app.config.update(
-	DEBUG = True,
-	SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
-    SECRET_KEY = '123456'
-)
+# app.config.update(
+# 	DEBUG = True,
+# 	SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+#     SECRET_KEY = '123456'
+# )
 
-# app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
 db = SQLAlchemy(app)
 
@@ -31,7 +30,6 @@ def add_cors_header(response):
 
 app.after_request(add_cors_header)
 
-# import oauth_logins
 
 #----------------------------------------
 # models
@@ -120,24 +118,3 @@ class StepView(ModelView):
 admin.add_view(CategoryView(Category, db.session))
 admin.add_view(LessonView(Lesson, db.session))
 admin.add_view(StepView(Step, db.session))
-
-# Foursquare ------------------------------------------------------------
-
-@app.route('/foursquare/login')
-def foursquare_login():
-    foursquare_auth_url = foursquare_lesson.foursquare_oauth()
-    return redirect(foursquare_auth_url)
-
-@app.route('/foursquare/code')
-def foursquare_code():
-    auth_code = request.args['code']
-    access_token = foursquare_lesson.get_access_token(auth_code)
-    return 'WHAT' #'<script>window.close()</script>'
-
-@app.route('/foursquare/loggedin/<access_token>')
-def foursquare_loggedin(access_token):
-    user = foursquare_lesson.get_user_data(access_token)
-    if user:
-        return '{"loggedIn":true}'
-    else:
-        return '{"loggedIn":false}'
