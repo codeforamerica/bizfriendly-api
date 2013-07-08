@@ -18,12 +18,10 @@ Some example API calls:
 
 How to City is written in Python, and runs as a standalone [Flask application](http://flask.pocoo.org/).
 
-1. Run a virtual environment and install all the requirements.
-	`source setup.sh`
+1. For local development, uncomment the settings in setup.sh and set the correct values for your environment. 
 
-2. If running locally, set some local variables.
-	`export DATABASE_URL='postgres://hackyourcity@localhost/howtocity'`
-	`export SECRET_KEY='123456'`
+2. Run a virtual environment and install all the requirements.
+	`source setup.sh`
 
 3. Run application.
     `python runserver.py`
