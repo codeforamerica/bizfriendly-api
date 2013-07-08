@@ -21,9 +21,14 @@ How to City is written in Python, and runs as a standalone [Flask application](h
 1. Run a virtual environment and install all the requirements.
 	`source setup.sh`
 
-2. Run application on [localhost port 5000](http://127.0.0.1:5000]):
+2. If running locally, set some local variables.
+	`export DATABASE_URL='postgres://hackyourcity@localhost/howtocity'`
+	`export SECRET_KEY='123456'`
 
+3. Run application.
     `python runserver.py`
+
+4. Add content through the [Admin panel](http://127.0.0.1:5000/api/admin/categoryview/).
 
 ## <a name="contributing"></a>Contributing
 In the spirit of [free software][free-sw], **everyone** is encouraged to help
@@ -60,6 +65,11 @@ bug.
 [gist]: https://gist.github.com/
 
 ## <a name="pulls"></a>Submitting a Pull Request
+1. Fork the project.
+2. Create a topic branch.
+3. Implement your feature or bug fix.
+4. Commit and push your changes.
+5. Submit a pull request.
 
 ## <a name="copyright"></a>Copyright
 Copyright (c) 2013 Code for America. See [LICENSE][] for details.
