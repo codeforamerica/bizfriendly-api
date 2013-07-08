@@ -1,5 +1,6 @@
 Flask==0.9
 Flask-Admin==1.0.6
+Flask-Login==0.2.5
 Flask-OAuth==0.12
 Flask-Restless==0.10.1
 Flask-SQLAlchemy==0.16
@@ -10,7 +11,6 @@ WTForms==1.0.4
 Werkzeug==0.8.3
 distribute==0.6.34
 flask-heroku==0.1.4
-foursquare==20130402
 gunicorn==0.17.4
 httplib2==0.8
 oauth2==1.5.211
