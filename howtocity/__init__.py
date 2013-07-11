@@ -6,7 +6,7 @@ from flask.ext.admin.contrib.sqlamodel import ModelView
 from flask.ext.admin import Admin
 from flask.ext.heroku import Heroku
 from flask import request, redirect
-
+import requests, json
 #----------------------------------------
 # initialization
 #----------------------------------------
@@ -14,11 +14,11 @@ from flask import request, redirect
 app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
-# app.config.update(
-# 	DEBUG = True,
-# 	SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
-#     SECRET_KEY = '123456'
-# )
+app.config.update(
+	DEBUG = True,
+	# SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+ #    SECRET_KEY = '123456'
+)
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
@@ -29,7 +29,6 @@ def add_cors_header(response):
     return response
 
 app.after_request(add_cors_header)
-
 
 #----------------------------------------
 # models
@@ -118,3 +117,86 @@ class StepView(ModelView):
 admin.add_view(CategoryView(Category, db.session))
 admin.add_view(LessonView(Lesson, db.session))
 admin.add_view(StepView(Step, db.session))
+
+# Functions --------------------------------------------------------
+
+@app.route('/logged_in', methods=['POST'])
+def logged_in():
+    # Check if the user is logged into the service
+    access_token = request.args['access_token']
+    trigger_endpoint = request.form['triggerEndpoint']
+    r = requests.get(trigger_endpoint+access_token)
+    rjson = r.json()
+    trigger_check = request.form['triggerCheck'].split(',')
+    trigger_value = request.form['triggerValue']
+    count = 0
+    while count < len(trigger_check):
+        rjson = rjson[trigger_check[count]]
+        count = count + 1
+    variableType = type(rjson).__name__
+    try:
+        trigger_value = eval(variableType+'('+trigger_value+')')
+    except TypeError:
+        pass
+    if rjson == trigger_value:
+        return '{"loggedIn":true}'
+    return '{"loggedIn":false}'
+
+@app.route('/check_for_new', methods=['POST'])
+def check_for_new():
+    trigger = False
+    original_count = 0
+    original_count_flag = False
+    
+    # Loop until a new page appears
+    while not trigger:
+        access_token = request.args['access_token']
+        trigger_endpoint = request.form['triggerEndpoint']
+        r = requests.get(trigger_endpoint+access_token)
+        rjson = r.json()
+        trigger_check = request.form['triggerCheck'].split(',')
+        trigger_value = request.form['triggerValue'].split(',')
+        count = 0
+        while count < len(trigger_check):
+            rjson = rjson[trigger_check[count]]
+            count = count + 1
+        assert isinstance(rjson, list)
+        if not original_count_flag:
+            original_count = len(rjson)
+            original_count_flag = True
+        if len(rjson) > original_count:
+            while count < len(trigger_check):
+                rjson = rjson[trigger_check[count]]
+                count = count + 1
+            trigger = True
+
+    # Return the last element of the list
+    rjson = rjson.pop()
+    count = 0
+    while count < len(trigger_value):
+        rjson = rjson[trigger_value[count]]
+        count = count + 1
+    return '{"newThingName":"'+rjson+'"}'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
