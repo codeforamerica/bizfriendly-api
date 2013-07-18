@@ -6,9 +6,12 @@ Flask-Restless==0.10.1
 Flask-SQLAlchemy==0.16
 Flask-WTF==0.8.3
 Jinja2==2.6
+Mako==0.8.1
+MarkupSafe==0.18
 SQLAlchemy==0.8.1
 WTForms==1.0.4
 Werkzeug==0.8.3
+alembic==0.5.0
 distribute==0.6.34
 flask-heroku==0.1.4
 gunicorn==0.17.4
