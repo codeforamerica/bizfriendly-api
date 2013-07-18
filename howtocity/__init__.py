@@ -6,6 +6,7 @@ from flask.ext.admin.contrib.sqlamodel import ModelView
 from flask.ext.admin import Admin
 from flask.ext.heroku import Heroku
 from flask import request, redirect
+# from flask.ext.login import LoginManager, login_user, logout_user, current_user, login_required
 import requests, json
 #----------------------------------------
 # initialization
@@ -15,12 +16,16 @@ app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
-	DEBUG = True,
-	# SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
- #    SECRET_KEY = '123456'
+    DEBUG = True,
+    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    # SECRET_KEY = '123456'
 )
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+
+# Initialize login
+# login_manager = LoginManager()
+# login_manager.init_app(app)
 
 db = SQLAlchemy(app)
 
@@ -68,7 +73,7 @@ class Lesson(db.Model):
 class Step(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode)
-    description = db.Column(db.Unicode)
+    step_type = db.Column(db.Unicode)
     url = db.Column(db.Unicode)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'))
     lesson = db.relationship('Lesson', backref=db.backref('steps', lazy='dynamic'))
@@ -79,11 +84,11 @@ class Step(db.Model):
     feedback = db.Column(db.Unicode)
     next_step = db.Column(db.Unicode)
 
-    def __init__(self, name=None, description=None, url=None, lesson=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, feedback=None, next_step=None):
+    def __init__(self, name=None, step_type=None, url=None, lesson=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, feedback=None, next_step=None):
         self.name = name
         self.description = description
         self.url = url
-        self.lesson = lesson
+        self.step_type = step_type
         self.step_text = step_text
         self.trigger_endpoint = trigger_endpoint
         self.trigger_check = trigger_check
