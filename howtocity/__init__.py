@@ -1,4 +1,3 @@
-import os
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 import flask.ext.restless
@@ -6,8 +5,7 @@ from flask.ext.admin.contrib.sqlamodel import ModelView
 from flask.ext.admin import Admin
 from flask.ext.heroku import Heroku
 from flask import request, redirect
-# from flask.ext.login import LoginManager, login_user, logout_user, current_user, login_required
-import requests, json
+import os, requests, json
 #----------------------------------------
 # initialization
 #----------------------------------------
@@ -17,23 +15,18 @@ heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
     DEBUG = True,
-    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
-    # SECRET_KEY = '123456'
+    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    SECRET_KEY = '123456'
 )
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
-# Initialize login
-# login_manager = LoginManager()
-# login_manager.init_app(app)
-
 db = SQLAlchemy(app)
 
+@app.after_request
 def add_cors_header(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
-
-app.after_request(add_cors_header)
 
 #----------------------------------------
 # models
@@ -81,10 +74,11 @@ class Step(db.Model):
     trigger_endpoint = db.Column(db.Unicode)
     trigger_check = db.Column(db.Unicode)
     trigger_value = db.Column(db.Unicode)
+    thing_to_remember = db.Column(db.Unicode)
     feedback = db.Column(db.Unicode)
     next_step = db.Column(db.Unicode)
 
-    def __init__(self, name=None, step_type=None, url=None, lesson=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, feedback=None, next_step=None):
+    def __init__(self, name=None, step_type=None, url=None, lesson=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, thing_to_remember=None, feedback=None, next_step=None):
         self.name = name
         self.description = description
         self.url = url
@@ -93,11 +87,24 @@ class Step(db.Model):
         self.trigger_endpoint = trigger_endpoint
         self.trigger_check = trigger_check
         self.trigger_value = trigger_value
+        self.thing_to_remember = thing_to_remember
         self.feedback = feedback
         self.next_step = next_step
 
     def __repr__(self):
         return self.name
+
+class Thing_to_remember(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    access_token = db.Column(db.Unicode)
+    thing_to_remember = db.Column(db.Unicode)
+
+    def __init__(self, access_token=None, thing_to_remember=None):
+        self.access_token = access_token
+        self.thing_to_remember = thing_to_remember
+
+    def __repr__(self):
+        return self.thing_to_remember
 
 # API ------------------------------------------------------------
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
@@ -152,7 +159,6 @@ def check_for_new():
     trigger = False
     original_count = 0
     original_count_flag = False
-    
     # Loop until a new page appears
     while not trigger:
         access_token = request.args['access_token']
@@ -160,7 +166,8 @@ def check_for_new():
         r = requests.get(trigger_endpoint+access_token)
         rjson = r.json()
         trigger_check = request.form['triggerCheck'].split(',')
-        trigger_value = request.form['triggerValue'].split(',')
+        trigger_value_endpoint = request.form['triggerValue'].split(',')
+        thing_to_remember_endpoint = request.form['thingToRemember'].split(',')
         count = 0
         while count < len(trigger_check):
             rjson = rjson[trigger_check[count]]
@@ -175,13 +182,26 @@ def check_for_new():
                 count = count + 1
             trigger = True
 
-    # Return the last element of the list
-    rjson = rjson.pop()
-    count = 0
-    while count < len(trigger_value):
-        rjson = rjson[trigger_value[count]]
-        count = count + 1
-    return '{"newThingName":"'+rjson+'"}'
+    # The new thing should be the last in the list
+    the_new_thing = rjson.pop()
+
+    def get_data_at_endpoint(json_data, endpoint_list):
+        count = 0
+        while count < len(endpoint_list):
+            json_data = json_data[endpoint_list[count]]
+            count = count + 1
+        data = json_data # Should be a string or int now, not json
+        return data
+
+    # Save the thing_to_remember in the database
+    thing_to_remember = get_data_at_endpoint(rjson, thing_to_remember_endpoint)
+    thing_to_remember_db = Thing_to_remember(access_token,thing_to_remember)
+    db.session.add(thing_to_remember_db)
+    db.session.commit()
+
+    # Return the value at the trigger_value endpoint
+    new_thing_name = get_data_at_endpoint(rjson, trigger_value_endpoint)
+    return '{"newThingName":"'+new_thing_name+'"}'
 
 
 
