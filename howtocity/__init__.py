@@ -1,11 +1,10 @@
-from flask import Flask
+from flask import Flask, request, redirect
 from flask.ext.sqlalchemy import SQLAlchemy
 import flask.ext.restless
 from flask.ext.admin.contrib.sqlamodel import ModelView
 from flask.ext.admin import Admin
 from flask.ext.heroku import Heroku
-from flask import request, redirect
-import os, requests, json
+import os, requests, json, time
 #----------------------------------------
 # initialization
 #----------------------------------------
@@ -14,19 +13,20 @@ app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
-    # DEBUG = True,
-    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
-    # SECRET_KEY = '123456'
+    DEBUG = True,
+    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    SECRET_KEY = '123456'
 )
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
 db = SQLAlchemy(app)
 
-@app.after_request
 def add_cors_header(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
+
+app.after_request(add_cors_header)
 
 #----------------------------------------
 # models
@@ -80,7 +80,6 @@ class Step(db.Model):
 
     def __init__(self, name=None, step_type=None, url=None, lesson=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, thing_to_remember=None, feedback=None, next_step=None):
         self.name = name
-        self.description = description
         self.url = url
         self.step_type = step_type
         self.step_text = step_text
@@ -137,86 +136,105 @@ def logged_in():
     # Check if the user is logged into the service
     access_token = request.args['access_token']
     trigger_endpoint = request.form['triggerEndpoint']
-    r = requests.get(trigger_endpoint+access_token)
-    rjson = r.json()
-    trigger_check = request.form['triggerCheck'].split(',')
+    trigger_check_endpoints = request.form['triggerCheck'].split(',')
     trigger_value = request.form['triggerValue']
-    count = 0
-    while count < len(trigger_check):
-        rjson = rjson[trigger_check[count]]
-        count = count + 1
-    variableType = type(rjson).__name__
-    try:
-        trigger_value = eval(variableType+'('+trigger_value+')')
-    except TypeError:
-        pass
-    if rjson == trigger_value:
-        return '{"loggedIn":true}'
-    return '{"loggedIn":false}'
+    counter = 0
+    while counter < 60:
+        counter = counter + 1
+        r = requests.get(trigger_endpoint+access_token)
+        rjson = r.json()
+        print rjson
+        for trigger_check_endpoint in trigger_check_endpoints:
+            try:
+                rjson = rjson[trigger_check_endpoint]
+            except KeyError:
+                # return 'The trigger check endpoint is set up wrong.'
+                pass
+        variableType = type(rjson).__name__
+        try:
+            trigger_value = eval(variableType+'("'+trigger_value+'")')
+        except (TypeError, ValueError):
+            pass
+        if rjson == trigger_value:
+            return '{"loggedIn":true}'
+        time.sleep(1)
+    return 'TIMEOUT'
 
 @app.route('/check_for_new', methods=['POST'])
 def check_for_new():
+    access_token = request.args['access_token']
+    trigger_endpoint = request.form['triggerEndpoint']
+    trigger_check_endpoints = request.form['triggerCheck'].split(',')
+    trigger_value_endpoints = request.form['triggerValue'].split(',')
+    thing_to_remember_endpoints = request.form['thingToRemember'].split(',')
     trigger = False
-    original_count = 0
+    original_count = 10000000
     original_count_flag = False
-    # Loop until a new page appears
-    while not trigger:
-        access_token = request.args['access_token']
-        trigger_endpoint = request.form['triggerEndpoint']
+    timer = 0
+    import pdb; pdb.set_trace()
+    while timer < 60:
+        timer = timer + 1
+        # while not trigger:
         r = requests.get(trigger_endpoint+access_token)
         rjson = r.json()
-        trigger_check = request.form['triggerCheck'].split(',')
-        trigger_value_endpoint = request.form['triggerValue'].split(',')
-        thing_to_remember_endpoint = request.form['thingToRemember'].split(',')
-        count = 0
-        while count < len(trigger_check):
-            rjson = rjson[trigger_check[count]]
-            count = count + 1
-        assert isinstance(rjson, list)
+        for trigger_check_endpoint in trigger_check_endpoints:
+            rjson = rjson[trigger_check_endpoint]
         if not original_count_flag:
             original_count = len(rjson)
             original_count_flag = True
         if len(rjson) > original_count:
-            while count < len(trigger_check):
-                rjson = rjson[trigger_check[count]]
-                count = count + 1
             trigger = True
+            break
+        time.sleep(1)
+
+    if not trigger:
+        return 'TIMEOUT'
 
     # The new thing should be the last in the list
     the_new_thing = rjson.pop()
 
-    def get_data_at_endpoint(json_data, endpoint_list):
-        count = 0
-        while count < len(endpoint_list):
-            json_data = json_data[endpoint_list[count]]
-            count = count + 1
+    def _get_data_at_endpoint(json_data, endpoints):
+        for endpoint in endpoints:
+            json_data = json_data[endpoint]
         data = json_data # Should be a string or int now, not json
         return data
 
     # Save the thing_to_remember in the database
-    thing_to_remember = get_data_at_endpoint(rjson, thing_to_remember_endpoint)
+    thing_to_remember = _get_data_at_endpoint(the_new_thing, thing_to_remember_endpoints)
     thing_to_remember_db = Thing_to_remember(access_token,thing_to_remember)
     db.session.add(thing_to_remember_db)
     db.session.commit()
 
     # Return the value at the trigger_value endpoint
-    new_thing_name = get_data_at_endpoint(rjson, trigger_value_endpoint)
+    new_thing_name = _get_data_at_endpoint(the_new_thing, trigger_value_endpoints)
     return '{"newThingName":"'+new_thing_name+'"}'
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+@app.route('/get_remembered_thing', methods=['POST'])
+def get_remembered_thing():
+    # import pdb; pdb.set_trace()
+    access_token = request.args['access_token']
+    trigger_endpoint = request.form['triggerEndpoint']
+    thing_to_remember = Thing_to_remember.query.filter_by(access_token=access_token).all()
+    thing_to_remember = thing_to_remember.pop() # Get just the last thing
+    # thing_to_remember = thing_to_remember['thing_to_remember'] # Get just the data we're remembering
+    trigger_endpoint = trigger_endpoint.replace('replace_me',str(thing_to_remember))
+    trigger_check_endpoint = request.form['triggerCheck']
+    counter = 0
+    print trigger_endpoint+access_token
+    while counter < 60:
+        r = requests.get(trigger_endpoint+access_token)
+        rjson = r.json()
+        try:
+            new_data = rjson[trigger_check_endpoint]
+            return '{"newData":"'+new_data+'"}'
+        except KeyError:
+            print KeyError
+            pass
+        counter = counter + 1
+        time.sleep(1)
+    return 'TIME OUT'
+            
+        
 
 
 

@@ -1,2 +1,2 @@
 from howtocity import app
-app.run()
+app.run(port=8000)
