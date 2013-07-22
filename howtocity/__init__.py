@@ -263,6 +263,17 @@ def get_added_data():
         counter = counter + 1
         time.sleep(1)
     return 'TIMEOUT'
+
+@app.route('/choose_next_step', methods=['POST'])
+def choose_next_step():
+    choice = request.args['choice']
+    choice_one = request.form['triggerCheck']
+    choice_two = request.form['triggerValue']
+    if choice == 'choice_one':
+        return '{"chosenStep":"'+choice_one+'"}'
+    if choice == 'choice_two':
+        return '{"chosenStep":"'+choice_two+'"}'
+
             
         
 
