@@ -1,7 +1,11 @@
 language: python
 python:
-  - "2.7"
-# command to install dependencies
-install: "pip install -r requirements.txt --use-mirrors"
-# command to run tests
+- '2.7'
+install: pip install -r requirements.txt --use-mirrors
+env: API_URL="http://howtocity-staging.herokuapp.com/api"
 script: python tests.py
+deploy:
+  provider: heroku
+  app: howtocity-staging
+  api_key:
+    secure: a/pLfLdIHUuHuWnzIsc80unUGJDZIf74JjHxn3rMzdvlbb+fE8n7qoFn82V46r4a2rzgY7/y/IxtvRTskredy+mZ+Bhacb9wNhOAatta9SOP6mOU2EGaRhaNX5L86ZBthWkNMq69pwNVLAbRNJAUBE+/akeKaQ1XdcNLuqORjrM=

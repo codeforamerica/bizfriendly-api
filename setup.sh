@@ -11,3 +11,4 @@ export DATABASE_URL='postgres://hackyourcity@localhost/howtocity'
 
 # Uncomment and set secret key to whatever unique value you want.
 export SECRET_KEY='123456'
+export API_URL='http://howtocity.herokuapp.com/api'

@@ -28,6 +28,9 @@ How to City is written in Python, and runs as a standalone [Flask application](h
 
 4. Add content through the [Admin panel](http://127.0.0.1:5000/api/admin/categoryview/).
 
+For continuous staging deployment:
+set the Travis CI github hook for codeforamerica/howtocity-api on
+
 ## <a name="contributing"></a>Contributing
 In the spirit of [free software][free-sw], **everyone** is encouraged to help
 improve this project.
