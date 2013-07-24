@@ -1,9 +1,10 @@
 import unittest, requests
+import os
 
 class howtocity_api_tester(unittest.TestCase):
 	
 	def setUp(self):
-		self.api_url = 'http://howtocity.herokuapp.com/api'
+		self.api_url = os.environ['API_URL']
 
 	def test_headers(self):
 		r = requests.get(self.api_url+'/v1/categories')
