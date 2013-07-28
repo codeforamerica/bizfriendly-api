@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect
+from flask import Flask, request, redirect, render_template
 from flask.ext.sqlalchemy import SQLAlchemy
 import flask.ext.restless
 from flask.ext.admin.contrib.sqlamodel import ModelView
@@ -15,6 +15,7 @@ heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
     # DEBUG = True,
+    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
     # SQLALCHEMY_DATABASE_URI = 'postgres://postgres@localhost/howtocity',
     # SECRET_KEY = '123456'
 )
@@ -55,11 +56,10 @@ class Lesson(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     category = db.relationship('Category', backref=db.backref('lessons', lazy='dynamic'))
 
-    def __init__(self, name=None, description=None, url=None, category=None):
+    def __init__(self, name=None, description=None, url=None):
         self.name = name
         self.description = description
         self.url = url
-        self.category = category
 
     def __repr__(self):
         return self.name
@@ -68,7 +68,7 @@ class Step(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode)
     step_type = db.Column(db.Unicode)
-    url = db.Column(db.Unicode)
+    step_number = db.Column(db.Integer)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'))
     lesson = db.relationship('Lesson', backref=db.backref('steps', lazy='dynamic'))
     step_text = db.Column(db.Unicode)
@@ -77,11 +77,11 @@ class Step(db.Model):
     trigger_value = db.Column(db.Unicode)
     thing_to_remember = db.Column(db.Unicode)
     feedback = db.Column(db.Unicode)
-    next_step = db.Column(db.Unicode)
+    next_step_number = db.Column(db.Integer)
 
-    def __init__(self, name=None, step_type=None, url=None, lesson=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, thing_to_remember=None, feedback=None, next_step=None):
+    def __init__(self, name=None, step_number=None, step_type=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, thing_to_remember=None, feedback=None, next_step_number=None):
         self.name = name
-        self.url = url
+        self.step_number = step_number
         self.step_type = step_type
         self.step_text = step_text
         self.trigger_endpoint = trigger_endpoint
@@ -89,7 +89,7 @@ class Step(db.Model):
         self.trigger_value = trigger_value
         self.thing_to_remember = thing_to_remember
         self.feedback = feedback
-        self.next_step = next_step
+        self.next_step_number = next_step_number
 
     def __repr__(self):
         return self.name
@@ -274,12 +274,6 @@ def choose_next_step():
         return '{"chosenStep":"'+choice_one+'"}'
     if choice == 'choice_two':
         return '{"chosenStep":"'+choice_two+'"}'
-
-            
-        
-
-
-
 
 
 
