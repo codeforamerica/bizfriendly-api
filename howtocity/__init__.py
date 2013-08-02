@@ -156,6 +156,7 @@ class UserLesson(db.Model):
         primary_key=True)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'),
         primary_key=True)
+    recent_step = db.Column(db.Integer, db.ForeignKey('step.id'))
     start_dt = db.Column(db.DateTime)
     end_dt = db.Column(db.DateTime, nullable=True)
     lesson = db.relationship('Lesson', backref="user_assocs")
@@ -374,6 +375,7 @@ def htc_signup():
 
     if (User.query.filter_by(email=user_email).first()):
         response['error'] = 'Email already in use.'
+        response['status'] = 403
         return json.dumps(response)
     else:        
         db.session.add(cur_user)
@@ -382,6 +384,7 @@ def htc_signup():
     response['access_token'] = cur_user.access_token 
     response['token_type'] = 'bearer'
     response['email'] = cur_user.email
+    response['status'] = 200
     return json.dumps(response)
 
 
@@ -397,10 +400,56 @@ def htc_login():
         response['access_token'] = cur_user.access_token
         response['token_type'] = "bearer"
         response['email'] = cur_user.email
+        response['status'] = 200
         return json.dumps(response)
     else:
+        response['status'] = 403
         response['error'] = "Invalid login credentials."
         return json.dumps(response)
+
+@app.route('/create_connection', method=['POST'])
+def create_connection():
+    response = {}
+    service_name = request.form['service']
+    htc_access = request.args.get['access_token']
+    service_access = request.form['service_access']
+
+    # TODO: find out how to handle case of pre-existing connection
+    cur_user = User.query.filter_by(access_token=htc_access).first()
+    if not cur_user:
+        response['status'] = 404
+        response['error'] = 'User not found'
+    new_connection = Connection(service_name, service_access)
+    cur_user.connections.append(new_connection)
+    db.session.commit()
+    response['status'] = 200
+    return response
+
+@app.route('/record_step', method=['POST'])
+def record_step():
+    response = {}
+    lesson_id = request.form['lessonId']
+    step_id = request.form['id']
+    htc_access = request.args.get('access_token')
+    cur_user = User.query.filter_by(access_token=htc_access).first()
+    lesson = None
+    for alesson in cur_user.lessons:
+        if alesson.id == lesson_id:
+            lesson = Lesson.query.filter_by(id=alesson.id)
+            break
+
+    if lesson:
+        lesson.recent_step = step_id
+        db.session.commit()
+        response['status'] = 200
+    else:
+        # TODO: decide error return strategy
+        response['status'] = 404
+        response['error'] = "Unable to save lesson state."
+
+    return json.dumps(response)
+
+
 
 
 

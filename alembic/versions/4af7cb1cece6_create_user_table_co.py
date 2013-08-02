@@ -33,6 +33,7 @@ def upgrade():
 		'user_to_lesson',
 		sa.Column('user_id', sa.Integer, sa.ForeignKey('user.id')),
 		sa.Column('lesson_id', sa.Integer, sa.ForeignKey('lesson.id')),
+		sa.Column('recent_step', sa.Integer, sa.ForeignKey('step.id')),
 		sa.Column('start_dt', sa.DateTime(timezone=True),
 			default=datetime.utcnow()),
 		sa.Column('end_dt', sa.DateTime(timezone=True))
