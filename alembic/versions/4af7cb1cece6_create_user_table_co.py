@@ -12,11 +12,11 @@ down_revision = '52b9c8f82d15'
 
 from alembic import op
 import sqlalchemy as sa
-
+from datetime import datetime
 
 def upgrade():
-    op.create_table(
-		'user',
+	op.create_table(
+		'bf_user',
 		sa.Column('id', sa.Integer, primary_key=True),
 		sa.Column('email', sa.Unicode(), unique=True, nullable=False),
 		sa.Column('password', sa.Unicode(), nullable=False),
@@ -25,13 +25,13 @@ def upgrade():
 	op.create_table(
 		'connection',
 		sa.Column('id', sa.Integer, primary_key=True),
-		sa.Column('user_id', sa.Integer, sa.ForeignKey('user.id')),
+		sa.Column('user_id', sa.Integer, sa.ForeignKey('bf_user.id')),
 		sa.Column('service', sa.Unicode(), nullable=False),
 		sa.Column('access_token', sa.Unicode(), nullable=False)
 		)
 	op.create_table(
 		'user_to_lesson',
-		sa.Column('user_id', sa.Integer, sa.ForeignKey('user.id')),
+		sa.Column('user_id', sa.Integer, sa.ForeignKey('bf_user.id')),
 		sa.Column('lesson_id', sa.Integer, sa.ForeignKey('lesson.id')),
 		sa.Column('recent_step', sa.Integer, sa.ForeignKey('step.id')),
 		sa.Column('start_dt', sa.DateTime(timezone=True),
@@ -42,5 +42,5 @@ def upgrade():
 def downgrade():
 	op.drop_table('user_to_lesson')
 	op.drop_table('connection')
-	op.drop_table('user')
+	op.drop_table('bf_user')
 

@@ -18,8 +18,8 @@ heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
     DEBUG = True,
-    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
-    SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
+    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    # SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
     # SECRET_KEY = '123456'
 )
 
@@ -98,7 +98,7 @@ class Step(db.Model):
     def __repr__(self):
         return self.name
 
-class User(db.Model):
+class Bf_user(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.Unicode, nullable=False, unique=True)
     password = db.Column(db.Unicode, nullable=False)
@@ -117,7 +117,7 @@ class User(db.Model):
         self.password = self.pw_digest(password)
 
     def __repr__(self):
-        return "User email: %s, id: %s" %(self.email, self.id)
+        return "Bf_user email: %s, id: %s" %(self.email, self.id)
 
     def pw_digest(self, password):
         # Hash password, store it with random signature for rehash
@@ -138,8 +138,8 @@ class User(db.Model):
 
 class Connection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    user = db.relationship('User', backref=db.backref('connections', lazy='dynamic'))
+    user_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
+    user = db.relationship('Bf_user', backref=db.backref('connections', lazy='dynamic'))
     service = db.Column(db.Unicode)
     access_token = db.Column(db.Unicode)
 
@@ -152,7 +152,7 @@ class Connection(db.Model):
 
 class UserLesson(db.Model):
     __tablename__ = 'user_to_lesson'
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
+    user_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'),
         primary_key=True)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'),
         primary_key=True)
@@ -185,7 +185,7 @@ manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
 manager.create_api(Category, methods=['GET', 'POST', 'DELETE'], url_prefix='/api/v1', collection_name='categories')
 manager.create_api(Lesson, methods=['GET', 'POST', 'DELETE'], url_prefix='/api/v1', collection_name='lessons')
 manager.create_api(Step, methods=['GET', 'POST', 'DELETE'], url_prefix='/api/v1', collection_name='steps')
-manager.create_api(User, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='users')
+manager.create_api(Bf_user, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='users')
 manager.create_api(UserLesson, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='userlessons')
 
 # ADMIN ------------------------------------------------------------
@@ -202,7 +202,7 @@ class StepView(ModelView):
 	column_display_pk = True
 	column_auto_select_related = True
 
-class UserView(ModelView):
+class Bf_userView(ModelView):
     column_display_pk = True
     column_auto_select_related = True
 
@@ -213,7 +213,7 @@ class UserLessonView(ModelView):
 admin.add_view(CategoryView(Category, db.session))
 admin.add_view(LessonView(Lesson, db.session))
 admin.add_view(StepView(Step, db.session))
-admin.add_view(UserView(User, db.session))
+admin.add_view(Bf_userView(Bf_user, db.session))
 admin.add_view(UserLessonView(UserLesson, db.session))
 
 # Functions --------------------------------------------------------
@@ -245,7 +245,7 @@ def logged_in():
     # Check if the user is logged into the service
     htc_access = request.form['access_token']
     service_name = request.form['lessonUrl'].lower()
-    user = User.query.filter_by(access_token=htc_access).first()
+    user = Bf_user.query.filter_by(access_token=htc_access).first()
     response = {}
 
     counter = 0
@@ -263,7 +263,7 @@ def logged_in():
 @app.route('/check_for_new', methods=['POST'])
 def check_for_new():
     htc_access = request.args['access_token']
-    cur_user = User.query.filter_by(access_token=htc_access).first()
+    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
     service_name = request.form['lessonUrl'].lower()
     trigger_endpoint = request.form['triggerEndpoint']
     trigger_check_endpoints = request.form['triggerCheck'].split(',')
@@ -306,7 +306,7 @@ def check_for_new():
 @app.route('/get_remembered_thing', methods=['POST'])
 def get_remembered_thing():
     htc_access = request.args['access_token']
-    cur_user = User.query.filter_by(access_token=htc_access).first()
+    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
     service_name = request.form['lessonUrl'].lower()
     trigger_endpoint = request.form['triggerEndpoint']
     trigger_check_endpoint = request.form['triggerCheck']
@@ -330,7 +330,7 @@ def get_remembered_thing():
 def get_added_data():
     # Doesn't actually need to return the photo from FB.
     htc_access = request.args['access_token']
-    cur_user = User.query.filter_by(access_token=htc_access).first()
+    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
     service_name = request.form['lessonUrl'].lower()
     trigger_endpoint = request.form['triggerEndpoint']
     trigger_check_endpoints = request.form['triggerCheck'].split(',')
@@ -364,16 +364,15 @@ def choose_next_step():
     if choice == 'choice_two':
         return '{"chosenStep":"'+choice_two+'"}'
 
-@app.route(api_version + '/signup', methods=['POST'])
+@app.route('/signup', methods=['POST'])
 def htc_signup():
-
     # TODO: verify user is a person?
     user_email = request.form['email']
     user_pw = request.form['password']
-    cur_user = User(user_email, user_pw)
+    cur_user = Bf_user(user_email, user_pw)
     response = {}
 
-    if (User.query.filter_by(email=user_email).first()):
+    if (Bf_user.query.filter_by(email=user_email).first()):
         response['error'] = 'Email already in use.'
         response['status'] = 403
         return json.dumps(response)
@@ -388,11 +387,11 @@ def htc_signup():
     return json.dumps(response)
 
 
-@app.route('/login', methods=['POST'])
-def htc_login():
+@app.route('/signin', methods=['POST'])
+def htc_signin():
     user_email = request.form['email']
     user_password = request.form['password']
-    cur_user = User.query.filter_by(email=user_email).first()
+    cur_user = Bf_user.query.filter_by(email=user_email).first()
     response = {}
 
     if cur_user and cur_user.check_pw(user_password):
@@ -407,7 +406,7 @@ def htc_login():
         response['error'] = "Invalid login credentials."
         return json.dumps(response)
 
-@app.route('/create_connection', method=['POST'])
+@app.route('/create_connection', methods=['POST'])
 def create_connection():
     response = {}
     service_name = request.form['service']
@@ -415,7 +414,7 @@ def create_connection():
     service_access = request.form['service_access']
 
     # TODO: find out how to handle case of pre-existing connection
-    cur_user = User.query.filter_by(access_token=htc_access).first()
+    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
     if not cur_user:
         response['status'] = 404
         response['error'] = 'User not found'
@@ -425,13 +424,13 @@ def create_connection():
     response['status'] = 200
     return response
 
-@app.route('/record_step', method=['POST'])
+@app.route('/record_step', methods=['POST'])
 def record_step():
     response = {}
     lesson_id = request.form['lessonId']
     step_id = request.form['id']
     htc_access = request.args.get('access_token')
-    cur_user = User.query.filter_by(access_token=htc_access).first()
+    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
     lesson = None
     for alesson in cur_user.lessons:
         if alesson.id == lesson_id:
