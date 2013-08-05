@@ -127,7 +127,7 @@ class Bf_user(db.Model):
 
     def check_pw(self, raw_password):
         salt, hsh = self.password.split('$')
-        return hashlib.sha256(salt + raw_password) == hsh
+        return hashlib.sha256(salt + raw_password).hexdigest() == hsh
 
     def make_authd_req(service, req_url):
         for connection in connections:
