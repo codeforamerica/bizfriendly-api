@@ -14,8 +14,8 @@ app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
-    # DEBUG = True,
-    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    DEBUG = True,
+    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
     # SQLALCHEMY_DATABASE_URI = 'postgres://postgres@localhost/howtocity',
     # SECRET_KEY = '123456'
 )
@@ -51,15 +51,25 @@ class Category(db.Model):
 class Lesson(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode, unique=True)
-    description = db.Column(db.Unicode)
-    url = db.Column(db.Unicode)
+    long_description = db.Column(db.Unicode)
+    short_description = db.Column(db.Unicode)
+    time_estimate = db.Column(db.Unicode)
+    difficulty = db.Column(db.Unicode)
+    additonal_resources = db.Column(db.Unicode)
+    tips = db.Column(db.Unicode)
+    third_party_service = db.Column(db.Unicode)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     category = db.relationship('Category', backref=db.backref('lessons', lazy='dynamic'))
 
-    def __init__(self, name=None, description=None, url=None):
+    def __init__(self, name=None, description=None, long_description=None, short_description=None, time_estimate=None, difficulty=None, additonal_resources=None, tips=None, third_party_service=None):
         self.name = name
-        self.description = description
-        self.url = url
+        self.long_description = long_description
+        self.short_description = short_description
+        self.time_estimate = time_estimate
+        self.difficulty = difficulty
+        self.additonal_resources = additonal_resources
+        self.tips = tips
+        self.third_party_service = third_party_service
 
     def __repr__(self):
         return self.name
