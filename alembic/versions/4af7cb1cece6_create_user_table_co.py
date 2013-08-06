@@ -8,7 +8,7 @@ Create Date: 2013-08-02 14:04:36.383942
 
 # revision identifiers, used by Alembic.
 revision = '4af7cb1cece6'
-down_revision = '52b9c8f82d15'
+down_revision = '4ae74c4b3ca0'
 
 from alembic import op
 import sqlalchemy as sa
@@ -20,7 +20,8 @@ def upgrade():
 		sa.Column('id', sa.Integer, primary_key=True),
 		sa.Column('email', sa.Unicode(), unique=True, nullable=False),
 		sa.Column('password', sa.Unicode(), nullable=False),
-		sa.Column('access_token', sa.Unicode(), unique=True, nullable=False)
+		sa.Column('access_token', sa.Unicode(), unique=True, nullable=False),
+		sa.Column('name', sa.Unicode(), nullable=True)
 		)
 	op.create_table(
 		'connection',
