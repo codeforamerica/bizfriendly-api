@@ -18,8 +18,8 @@ heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
     DEBUG = True,
-    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
-    # SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
+    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
     # SECRET_KEY = '123456'
 )
 
@@ -55,15 +55,25 @@ class Category(db.Model):
 class Lesson(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode, unique=True)
-    description = db.Column(db.Unicode)
-    url = db.Column(db.Unicode)
+    long_description = db.Column(db.Unicode)
+    short_description = db.Column(db.Unicode)
+    time_estimate = db.Column(db.Unicode)
+    difficulty = db.Column(db.Unicode)
+    additional_resources = db.Column(db.Unicode)
+    tips = db.Column(db.Unicode)
+    third_party_service = db.Column(db.Unicode)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     category = db.relationship('Category', backref=db.backref('lessons', lazy='dynamic'))
 
     def __init__(self, name=None, description=None, url=None):
         self.name = name
-        self.description = description
-        self.url = url
+        self.long_description = long_description
+        self.short_description = short_description
+        self.time_estimate = time_estimate
+        self.difficulty = difficulty
+        self.additional_resources = additional_resources
+        self.tips = tips
+        self.third_party_service = third_party_service
 
     def __repr__(self):
         return self.name
@@ -99,10 +109,13 @@ class Step(db.Model):
         return self.name
 
 class Bf_user(db.Model):
+    # Attributes
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.Unicode, nullable=False, unique=True)
     password = db.Column(db.Unicode, nullable=False)
     access_token = db.Column(db.Unicode, nullable=False)
+    name = db.Column(db.Unicode, nullable=False)
+    # Relations
     lessons = db.relationship("UserLesson", backref="user")
 
     # TODO: Decide how strict this email validation should be
@@ -110,11 +123,12 @@ class Bf_user(db.Model):
     # def validate_email(self, key, address):
     #     pass
 
-    def __init__(self, email=None, password=None):
+    def __init__(self, email=None, password=None, name=None):
         self.email = str(email)
         password = str(password)
         self.access_token = hashlib.sha256(str(os.urandom(24))).hexdigest()
         self.password = self.pw_digest(password)
+        self.name = name
 
     def __repr__(self):
         return "Bf_user email: %s, id: %s" %(self.email, self.id)
@@ -369,7 +383,8 @@ def htc_signup():
     # TODO: verify user is a person?
     user_email = request.form['email']
     user_pw = request.form['password']
-    cur_user = Bf_user(user_email, user_pw)
+    user_name = request.form['name']
+    cur_user = Bf_user(user_email, user_pw, user_name)
     response = {}
 
     if (Bf_user.query.filter_by(email=user_email).first()):
@@ -384,6 +399,7 @@ def htc_signup():
     response['token_type'] = 'bearer'
     response['email'] = cur_user.email
     response['status'] = 200
+    response['name'] = cur_user.name
     return json.dumps(response)
 
 
@@ -393,18 +409,17 @@ def htc_signin():
     user_password = request.form['password']
     cur_user = Bf_user.query.filter_by(email=user_email).first()
     response = {}
-
     if cur_user and cur_user.check_pw(user_password):
         # User is valid, return credentials
         response['access_token'] = cur_user.access_token
         response['token_type'] = "bearer"
         response['email'] = cur_user.email
+        response['name'] = cur_user.name
         response['status'] = 200
-        return json.dumps(response)
     else:
         response['status'] = 403
         response['error'] = "Invalid login credentials."
-        return json.dumps(response)
+    return json.dumps(response)
 
 @app.route('/create_connection', methods=['POST'])
 def create_connection():
