@@ -65,7 +65,7 @@ class Lesson(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     category = db.relationship('Category', backref=db.backref('lessons', lazy='dynamic'))
 
-    def __init__(self, name=None, description=None, url=None):
+    def __init__(self, name=None, description=None, long_description=None, short_description=None, time_estimate=None, difficulty=None, additional_resources=None, tips=None, third_party_service=None):
         self.name = name
         self.long_description = long_description
         self.short_description = short_description
