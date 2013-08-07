@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, render_template, url_for
+from flask import Flask, request, redirect, render_template, url_for, Response
 from flask.ext.sqlalchemy import SQLAlchemy
 import flask.ext.restless
 from flask.ext.admin.contrib.sqlamodel import ModelView
@@ -116,7 +116,7 @@ class Bf_user(db.Model):
     access_token = db.Column(db.Unicode, nullable=False)
     name = db.Column(db.Unicode, nullable=False)
     # Relations
-    lessons = db.relationship("UserLesson", backref="user")
+    lessons = db.relationship("UserLesson")
 
     # TODO: Decide how strict this email validation should be
     # @validates('email')
@@ -173,7 +173,7 @@ class UserLesson(db.Model):
     recent_step = db.Column(db.Integer, db.ForeignKey('step.id'))
     start_dt = db.Column(db.DateTime)
     end_dt = db.Column(db.DateTime, nullable=True)
-    lesson = db.relationship('Lesson', backref="user_assocs")
+    lesson = db.relationship('Lesson')
 
     def __init__(self, start_dt=None, end_dt=None):
         self.start_dt = start_dt 
@@ -257,8 +257,8 @@ def autoconvert(s):
 @app.route('/logged_in', methods=['POST'])
 def logged_in():
     # Check if the user is logged into the service
-    htc_access = request.form['access_token']
-    service_name = request.form['lessonUrl'].lower()
+    htc_access = request.args.get('access_token')
+    service_name = request.form['lessonService'].lower()
     user = Bf_user.query.filter_by(access_token=htc_access).first()
     response = {}
 
@@ -278,7 +278,7 @@ def logged_in():
 def check_for_new():
     htc_access = request.args['access_token']
     cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
-    service_name = request.form['lessonUrl'].lower()
+    service_name = request.form['lessonService'].lower()
     trigger_endpoint = request.form['triggerEndpoint']
     trigger_check_endpoints = request.form['triggerCheck'].split(',')
     trigger_value_endpoints = request.form['triggerValue'].split(',')
@@ -423,10 +423,11 @@ def htc_signin():
 
 @app.route('/create_connection', methods=['POST'])
 def create_connection():
+    # import pdb; pdb.set_trace()
     response = {}
     service_name = request.form['service']
-    htc_access = request.args.get['access_token']
     service_access = request.form['service_access']
+    htc_access = request.args.get('access_token')
 
     # TODO: find out how to handle case of pre-existing connection
     cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
@@ -437,31 +438,30 @@ def create_connection():
     cur_user.connections.append(new_connection)
     db.session.commit()
     response['status'] = 200
-    return response
+    return Response(response)
 
 @app.route('/record_step', methods=['POST'])
 def record_step():
-    response = {}
-    lesson_id = request.form['lessonId']
-    step_id = request.form['id']
-    htc_access = request.args.get('access_token')
-    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
-    lesson = None
-    for alesson in cur_user.lessons:
-        if alesson.id == lesson_id:
-            lesson = Lesson.query.filter_by(id=alesson.id)
-            break
+    # response = {}
+    # lesson_id = request.form['lessonId']
+    # step_id = request.form['id']
+    # htc_access = request.args.get('access_token')
+    # cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
+    # cur_less = Lesson.query.filter_by(id=lesson_id).first()
+    # user_less = UserLesson(start_dt=datetime.now)
 
-    if lesson:
-        lesson.recent_step = step_id
-        db.session.commit()
-        response['status'] = 200
-    else:
-        # TODO: decide error return strategy
-        response['status'] = 404
-        response['error'] = "Unable to save lesson state."
+    # if cur_less:
+    #     cur_less.recent_step = step_id
+    #     user_less.lesson = cur_less
+    #     cur_user.lessons.append(user_less)
+    #     db.session.commit()
+    #     response['status'] = 200
+    # else:
+    #     # TODO: decide error return strategy
+    #     response['status'] = 404
+    #     response['error'] = "Unable to save lesson state."
 
-    return json.dumps(response)
+    return True
 
 
 
