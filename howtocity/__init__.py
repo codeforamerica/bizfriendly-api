@@ -12,14 +12,13 @@ from requests import get as http_get
 # initialization
 #----------------------------------------
 
-
 app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
-    DEBUG = True,
+    # DEBUG = True,
     # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
-    SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
+    # SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
     # SECRET_KEY = '123456'
 )
 
@@ -143,12 +142,10 @@ class Bf_user(db.Model):
         salt, hsh = self.password.split('$')
         return hashlib.sha256(salt + raw_password).hexdigest() == hsh
 
-    def make_authd_req(service, req_url):
-        for connection in connections:
+    def make_authd_req(self, service, req_url):
+        for connection in self.connections:
             if connection.service == service:
-                # TODO: change all existing endpoints to NOT include ?access_token=
-                return http_get(req_url + '?access_token=' + connection.access_token,
-                    headers={'User-Agent': 'Python'})
+                return http_get(req_url + connection.access_token, headers={'User-Agent': 'Python'})
 
 class Connection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -253,32 +250,41 @@ def autoconvert(s):
             pass
     return s
 
-
 @app.route('/logged_in', methods=['POST'])
 def logged_in():
-    # Check if the user is logged into the service
+    # Check if the user is has a third_party_service access token.
+    response = {
+        "logged_in" : False,
+        "timeout" : True
+    }
     htc_access = request.args.get('access_token')
     service_name = request.form['lessonService'].lower()
-    user = Bf_user.query.filter_by(access_token=htc_access).first()
-    response = {}
-
-    counter = 0
-    while counter < 30:    
-        for connection in user.connections:
-            if connection.service == service_name:
-                response['loggedIn'] = True
-                return json.dumps(response)
-        counter = counter + 1
-        time.sleep(1)
-
-    response['error'] = 'TIMEOUT'
-    return json.dups(response)
+    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
+    if not cur_user:
+        response['status'] = 404
+        response['error'] = 'No use found.'
+        return response
+    for connection in cur_user.connections:
+        if connection.service == service_name:
+            response['logged_in'] = True
+            response['timeout'] = False
+            return json.dumps(response)
+    return json.dumps(response)
 
 @app.route('/check_for_new', methods=['POST'])
 def check_for_new():
-    htc_access = request.args['access_token']
-    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
+    # Check if something new gets added to the 
+    # triggerCheck of the triggerEndpoint.
+    # When something new appears, remember the thingToRemember
+    # then return the triggerValue.
+    response = {
+        "new_thing_name" : False,
+        "timeout" : True
+    }
+
+    htc_access = request.args.get('access_token')
     service_name = request.form['lessonService'].lower()
+    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
     trigger_endpoint = request.form['triggerEndpoint']
     trigger_check_endpoints = request.form['triggerCheck'].split(',')
     trigger_value_endpoints = request.form['triggerValue'].split(',')
@@ -287,9 +293,8 @@ def check_for_new():
     original_count = 10000000
     original_count_flag = False
     timer = 0
-    while timer < 60:
+    while timer < 5:
         timer = timer + 1
-        # while not trigger:
         r = cur_user.make_authd_req(service_name, trigger_endpoint)
         rjson = r.json()
         for trigger_check_endpoint in trigger_check_endpoints:
@@ -302,81 +307,102 @@ def check_for_new():
             break
         time.sleep(1)
     if not trigger:
-        return 'TIMEOUT'
+        return json.dumps(response)
 
     # The new thing should be the last in the list
     the_new_thing = rjson.pop()
 
     # Save the thing_to_remember in the database
+    # Todo: Better temporary way to remember something.
+    # Only remember one thing per user.
     thing_to_remember = get_data_at_endpoint(the_new_thing, thing_to_remember_endpoints)
-    thing_to_remember_db = Thing_to_remember(access_token,thing_to_remember)
-    db.session.add(thing_to_remember_db)
+    thing_to_remember_db = Thing_to_remember.query.filter_by(access_token=htc_access).first()
+    if thing_to_remember_db:
+        thing_to_remember_db.thing_to_remember = thing_to_remember
+    else:
+        thing_to_remember_db = Thing_to_remember(htc_access,thing_to_remember)
+        db.session.add(thing_to_remember_db)
     db.session.commit()
 
     # Return the value at the trigger_value endpoint
-    new_thing_name = get_data_at_endpoint(the_new_thing, trigger_value_endpoints)
-    return '{"newThingName":"'+new_thing_name+'"}'
+    response["new_thing_name"] = get_data_at_endpoint(the_new_thing, trigger_value_endpoints)
+    response['timeout'] = False
+    return json.dumps(response)
 
 @app.route('/get_remembered_thing', methods=['POST'])
 def get_remembered_thing():
+    # Grabs the remembered thing.
+    # Bug: If the user signs in from a different browser, we won't be able to remember thing.
+    response = {
+        "new_data" : False,
+        "timeout" : True
+    }
+
     htc_access = request.args['access_token']
     cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
-    service_name = request.form['lessonUrl'].lower()
+    service_name = request.form['lessonService'].lower()
     trigger_endpoint = request.form['triggerEndpoint']
     trigger_check_endpoint = request.form['triggerCheck']
     trigger_value_endpoint = request.form['triggerValue']
-    things_to_remember = Thing_to_remember.query.filter_by(access_token=access_token).all()
+    things_to_remember = Thing_to_remember.query.filter_by(access_token=htc_access).all()
     thing_to_remember = things_to_remember.pop() # Get just the last thing
     trigger_endpoint = trigger_endpoint.replace('replace_me',str(thing_to_remember))
-    counter = 0
-    while counter < 60:
+
+    timer = 0
+    while timer < 5:
         r = cur_user.make_authd_req(service_name, trigger_endpoint)
         rjson = r.json()
         if trigger_check_endpoint in rjson:
             # if trigger_value_endpoint in rjson:
-            new_data = rjson[trigger_check_endpoint]
-            return '{"newData":"'+new_data+'"}'
-        counter = counter + 1
+            response["new_data"] = rjson[trigger_check_endpoint]
+            response['timeout'] = False
+            return json.dumps(response)
+        timer = timer + 1
         time.sleep(1)
-    return 'TIMEOUT'
+    return json.dumps(response)
 
 @app.route('/get_added_data', methods=['POST'])
 def get_added_data():
-    # Doesn't actually need to return the photo from FB.
+    # Checks to see if new data was added to triggerEndpoint.
+    # Once triggerCheck equals triggerValue
+    # then return thingToRemember column (need to make a new column with better name) 
+    response = {
+        "new_data" : False,
+        "timeout" : True
+    }
     htc_access = request.args['access_token']
     cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
-    service_name = request.form['lessonUrl'].lower()
+    service_name = request.form['lessonService'].lower()
     trigger_endpoint = request.form['triggerEndpoint']
     trigger_check_endpoints = request.form['triggerCheck'].split(',')
     trigger_value = request.form['triggerValue']
     trigger_value2_endpoints = request.form['thingToRemember'].split(',')
-    things_to_remember = Thing_to_remember.query.filter_by(access_token=access_token).all()
-    thing_to_remember = things_to_remember.pop() # Get just the last thing
+    thing_to_remember = Thing_to_remember.query.filter_by(access_token=htc_access).first()
     trigger_endpoint = trigger_endpoint.replace('replace_me',str(thing_to_remember))
-    counter = 0
-    while counter < 60:
+    timer = 0
+    while timer < 5:
         r = cur_user.make_authd_req(service_name, trigger_endpoint)
         rjson = r.json()
-        # Check if certain endpoint equals something
         trigger_check = get_data_at_endpoint(rjson, trigger_check_endpoints)
         trigger_value2 = get_data_at_endpoint(rjson, trigger_value2_endpoints)
         trigger_value = autoconvert(trigger_value)
         if trigger_check == trigger_value:
-            new_data = trigger_value2
-            return '{"newData":"'+new_data+'"}'
-        counter = counter + 1
+            response["new_data"] = trigger_value2
+            response['timeout'] = False
+            return json.dumps(response)
+        timer = timer + 1
         time.sleep(1)
-    return 'TIMEOUT'
+    return json.dumps(response)
 
-@app.route('/choose_next_step', methods=['POST'])
-def choose_next_step():
-    choice = request.args['choice']
-    choice_one = request.form['triggerCheck']
-    choice_two = request.form['triggerValue']
-    if choice == 'choice_one':
-        return '{"chosenStep":"'+choice_one+'"}'
-    if choice == 'choice_two':
-        return '{"chosenStep":"'+choice_two+'"}'
+# @app.route('/choose_next_step', methods=['POST'])
+# def choose_next_step():
+#     choice = request.args['choice']
+#     choice_one = request.form['triggerCheck']
+#     choice_two = request.form['triggerValue']
+#     if choice == 'choice_one':
+#         return '{"chosenStep":"'+choice_one+'"}'
+#     if choice == 'choice_two':
+#         return '{"chosenStep":"'+choice_two+'"}'
 
 @app.route('/signup', methods=['POST'])
 def htc_signup():
@@ -402,7 +428,6 @@ def htc_signup():
     response['name'] = cur_user.name
     return json.dumps(response)
 
-
 @app.route('/signin', methods=['POST'])
 def htc_signin():
     user_email = request.form['email']
@@ -423,25 +448,34 @@ def htc_signin():
 
 @app.route('/create_connection', methods=['POST'])
 def create_connection():
-    # import pdb; pdb.set_trace()
-    response = {}
-    service_name = request.form['service']
-    service_access = request.form['service_access']
-    htc_access = request.args.get('access_token')
+    response = {
+        "connection_saved" : False
+    }
 
-    # TODO: find out how to handle case of pre-existing connection
+    service_name = request.form['service_name']
+    oauth_token = request.form['oauth_token']
+    htc_access = request.args.get('access_token')
     cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
     if not cur_user:
         response['status'] = 404
         response['error'] = 'User not found'
-    new_connection = Connection(service_name, service_access)
-    cur_user.connections.append(new_connection)
+        return json.dumps(response)
+    # Update exisitng connection with new oauth token
+    connectionUpdatedFlag = False
+    for connection in cur_user.connections:
+        if connection.service == service_name:
+            connectionUpdatedFlag = True
+            connection.access_token = oauth_token
+    # Make a new connection if there isnt one
+    if not connectionUpdatedFlag:
+        new_connection = Connection(service_name, oauth_token)
+        cur_user.connections.append(new_connection)
     db.session.commit()
-    response['status'] = 200
-    return Response(response)
+    response['connection_saved'] = True
+    return json.dumps(response)
 
-@app.route('/record_step', methods=['POST'])
-def record_step():
+# @app.route('/record_step', methods=['POST'])
+# def record_step():
     # response = {}
     # lesson_id = request.form['lessonId']
     # step_id = request.form['id']
@@ -460,12 +494,4 @@ def record_step():
     #     # TODO: decide error return strategy
     #     response['status'] = 404
     #     response['error'] = "Unable to save lesson state."
-
-    return True
-
-
-
-
-
-
-
+    # return json.dumps(response)
