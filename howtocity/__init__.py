@@ -204,6 +204,7 @@ def check_for_new():
     }
 
     access_token = request.args['access_token']
+    third_party_service = request.form['thirdPartyService']
     trigger_endpoint = request.form['triggerEndpoint']
     trigger_check_endpoints = request.form['triggerCheck'].split(',')
     trigger_value_endpoints = request.form['triggerValue'].split(',')
@@ -217,6 +218,7 @@ def check_for_new():
         r = requests.get(trigger_endpoint+access_token)
         rjson = r.json()
         for trigger_check_endpoint in trigger_check_endpoints:
+            trigger_check_endpoint = autoconvert(trigger_check_endpoint)
             rjson = rjson[trigger_check_endpoint]
         if not original_count_flag:
             original_count = len(rjson)
@@ -228,8 +230,14 @@ def check_for_new():
     if not trigger:
         return json.dumps(response)
 
-    # The new thing should be the last in the list
+    # Default
+    # if third_party_service == 'facebook':
+    # Facebook has new pages appear at the end of the list
     the_new_thing = rjson.pop()
+
+    # if third_party_service == 'foursquare':
+    #     # Foursquare has new tips as the first in the list
+    #     the_new_thing = rjson.pop(0)
 
     # Save the thing_to_remember in the database
     thing_to_remember = get_data_at_endpoint(the_new_thing, thing_to_remember_endpoints)
@@ -240,6 +248,41 @@ def check_for_new():
     # Return the value at the trigger_value endpoint
     response["new_thing_name"] = get_data_at_endpoint(the_new_thing, trigger_value_endpoints)
     response['timeout'] = False
+    return json.dumps(response)
+
+
+# Refactor to combine with the above
+@app.route('/check_for_new_tip', methods=['POST'])
+def check_for_new_tip():
+
+    response = {
+        "new_tip_added" : False,
+        "timeout" : True
+    }
+
+    access_token = request.args['access_token']
+    third_party_service = request.form['thirdPartyService']
+    trigger_endpoint = request.form['triggerEndpoint']
+    trigger_check_endpoints = request.form['triggerCheck'].split(',')
+    trigger_value_endpoints = request.form['triggerValue'].split(',')
+    thing_to_remember_endpoints = request.form['thingToRemember'].split(',')
+    trigger = False
+    original_count = 10000000
+    original_count_flag = False
+    timer = 0
+    while timer < 5:
+        timer = timer + 1
+        r = requests.get(trigger_endpoint+access_token)
+        rjson = r.json()
+        for trigger_check_endpoint in trigger_check_endpoints:
+            trigger_check_endpoint = autoconvert(trigger_check_endpoint)
+            rjson = rjson[trigger_check_endpoint]
+        if not original_count_flag:
+            original_count = len(rjson)
+            original_count_flag = True
+        if len(rjson) > original_count:
+            response['new_tip_added'] = True
+        time.sleep(1)
     return json.dumps(response)
 
 @app.route('/get_remembered_thing', methods=['POST'])
@@ -302,13 +345,3 @@ def get_added_data():
         timer = timer + 1
         time.sleep(1)
     return json.dumps(response)
-
-@app.route('/choose_next_step', methods=['POST'])
-def choose_next_step():
-    choice = request.args['choice']
-    choice_one = request.form['triggerCheck']
-    choice_two = request.form['triggerValue']
-    if choice == 'choice_one':
-        return '{"chosenStep":"'+choice_one+'"}'
-    if choice == 'choice_two':
-        return '{"chosenStep":"'+choice_two+'"}'
