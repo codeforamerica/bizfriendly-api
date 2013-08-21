@@ -4,6 +4,9 @@ python:
 install: pip install -r requirements.txt --use-mirrors
 env: API_URL="http://howtocity-staging.herokuapp.com/api"
 script: python tests.py
+branch:
+  only:
+    - staging
 deploy:
   provider: heroku
   app: howtocity-staging
