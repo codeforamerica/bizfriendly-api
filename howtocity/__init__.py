@@ -15,7 +15,7 @@ heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
     # DEBUG = True,
-    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
     # SQLALCHEMY_DATABASE_URI = 'postgres://postgres@localhost/howtocity',
     # SECRET_KEY = '123456'
 )
@@ -148,6 +148,12 @@ def get_data_at_endpoint(json_data, endpoints):
     data = json_data # Should be a string or int now, not json
     return data
 
+def get_count(endpoints):
+    for endpoint in endpoints:
+        endpoint = autoconvert(endpoint)
+        rjson = rjson[endpoint]
+        return len(rjson)
+
 def boolify(s):
     if s == 'True' or s == 'true':
         return True
@@ -177,7 +183,7 @@ def logged_in():
     trigger_check_endpoints = request.form['triggerCheck'].split(',')
     trigger_value = request.form['triggerValue']
     timer = 0
-    while timer < 5:
+    while timer < 60:
         timer = timer + 1
         r = requests.get(trigger_endpoint+access_token)
         rjson = r.json()
@@ -195,24 +201,49 @@ def logged_in():
         time.sleep(1)
     return json.dumps(response)
 
+# @app.route('/get_count', methods=['POST'])
+# def get_count():
+#     access_token = request.args['access_token']
+#     third_party_service = request.form['thirdPartyService']
+#     trigger_endpoint = request.form['triggerEndpoint']
+#     trigger_check_endpoints = request.form['triggerCheck'].split(',')
+#     trigger_value_endpoints = request.form['triggerValue'].split(',')
+#     thing_to_remember_endpoints = request.form['thingToRemember'].split(',')
+
+
 @app.route('/check_for_new', methods=['POST'])
 def check_for_new():
+    # Check if new thing exists
+    # new function to return the value of an endpoint
+    # new function to remember another endpoint for later
 
     response = {
-        "new_thing_name" : False,
+        "new_thing_created" : False,
         "timeout" : True
     }
-
+    
     access_token = request.args['access_token']
+    # See if the original_count is included in the request
+    try:
+        original_count = int(request.args['original_count'])
+    except KeyError:
+        original_count = False
     third_party_service = request.form['thirdPartyService']
     trigger_endpoint = request.form['triggerEndpoint']
     trigger_check_endpoints = request.form['triggerCheck'].split(',')
     trigger_value_endpoints = request.form['triggerValue'].split(',')
     thing_to_remember_endpoints = request.form['thingToRemember'].split(',')
-    trigger = False
-    original_count = 10000000
-    original_count_flag = False
-    timer = 0
+
+    # The first time we call check_for_new, grab the original count of the resource.
+    if not original_count:
+        original_count = get_count(trigger_check_endpoints)
+
+
+
+    # trigger = False
+    # original_count = 10000000
+    # original_count_flag = False
+    # timer = 0
     while timer < 60:
         timer = timer + 1
         r = requests.get(trigger_endpoint+access_token)
@@ -220,9 +251,6 @@ def check_for_new():
         for trigger_check_endpoint in trigger_check_endpoints:
             trigger_check_endpoint = autoconvert(trigger_check_endpoint)
             rjson = rjson[trigger_check_endpoint]
-        if not original_count_flag:
-            original_count = len(rjson)
-            original_count_flag = True
         if len(rjson) > original_count:
             trigger = True
             break
@@ -270,7 +298,7 @@ def check_for_new_tip():
     original_count = 10000000
     original_count_flag = False
     timer = 0
-    while timer < 5:
+    while timer < 60:
         timer = timer + 1
         r = requests.get(trigger_endpoint+access_token)
         rjson = r.json()
@@ -301,7 +329,7 @@ def get_remembered_thing():
     thing_to_remember = things_to_remember.pop() # Get just the last thing
     trigger_endpoint = trigger_endpoint.replace('replace_me',str(thing_to_remember))
     timer = 0
-    while timer < 5:
+    while timer < 60:
         r = requests.get(trigger_endpoint+access_token)
         rjson = r.json()
         if trigger_check_endpoint in rjson:
@@ -331,7 +359,7 @@ def get_added_data():
     thing_to_remember = things_to_remember.pop() # Get just the last thing
     trigger_endpoint = trigger_endpoint.replace('replace_me',str(thing_to_remember))
     timer = 0
-    while timer < 5:
+    while timer < 60:
         r = requests.get(trigger_endpoint+access_token)
         rjson = r.json()
         # Check if certain endpoint equals something
