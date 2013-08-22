@@ -148,12 +148,6 @@ def get_data_at_endpoint(json_data, endpoints):
     data = json_data # Should be a string or int now, not json
     return data
 
-def get_count(endpoints):
-    for endpoint in endpoints:
-        endpoint = autoconvert(endpoint)
-        rjson = rjson[endpoint]
-        return len(rjson)
-
 def boolify(s):
     if s == 'True' or s == 'true':
         return True
@@ -201,85 +195,101 @@ def logged_in():
         time.sleep(1)
     return json.dumps(response)
 
-# @app.route('/get_count', methods=['POST'])
-# def get_count():
-#     access_token = request.args['access_token']
-#     third_party_service = request.form['thirdPartyService']
-#     trigger_endpoint = request.form['triggerEndpoint']
-#     trigger_check_endpoints = request.form['triggerCheck'].split(',')
-#     trigger_value_endpoints = request.form['triggerValue'].split(',')
-#     thing_to_remember_endpoints = request.form['thingToRemember'].split(',')
-
-
 @app.route('/check_for_new', methods=['POST'])
 def check_for_new():
     # Check if new thing exists
-    # new function to return the value of an endpoint
-    # new function to remember another endpoint for later
+    # Remember new thing
+    # Return desired endpoint
 
-    response = {
-        "new_thing_created" : False,
+    our_response = {
+        "resource_attribute_to_display" : False,
+        "resource_attribute_to_remember" : False,
+        "new_resource_added" : False,
         "timeout" : True
     }
     
     access_token = request.args['access_token']
-    # See if the original_count is included in the request
-    try:
-        original_count = int(request.args['original_count'])
-    except KeyError:
-        original_count = False
     third_party_service = request.form['thirdPartyService']
-    trigger_endpoint = request.form['triggerEndpoint']
-    trigger_check_endpoints = request.form['triggerCheck'].split(',')
-    trigger_value_endpoints = request.form['triggerValue'].split(',')
-    thing_to_remember_endpoints = request.form['thingToRemember'].split(',')
+    resource_url = request.form['triggerEndpoint']
+    path_for_desired_resource = request.form['triggerCheck'].split(',')
+    path_for_attribute_to_display = request.form['triggerValue'].split(',')
+    path_for_attribute_to_remember = request.form['thingToRemember'].split(',')
 
-    # The first time we call check_for_new, grab the original count of the resource.
-    if not original_count:
-        original_count = get_count(trigger_check_endpoints)
+    # Grab the original count of the resource.
+    resource = requests.get(resource_url+access_token)
+    resource = resource.json()
+    for key in path_for_desired_resource:
+        key = autoconvert(key)
+        resource = resource[key]
+    original_count = len(resource)
 
-
-
-    # trigger = False
-    # original_count = 10000000
-    # original_count_flag = False
-    # timer = 0
+    #  Check api_resource_url every two seconds for a new additon at path_of_resource_to_check
+    timer = 0
     while timer < 60:
-        timer = timer + 1
-        r = requests.get(trigger_endpoint+access_token)
-        rjson = r.json()
-        for trigger_check_endpoint in trigger_check_endpoints:
-            trigger_check_endpoint = autoconvert(trigger_check_endpoint)
-            rjson = rjson[trigger_check_endpoint]
-        if len(rjson) > original_count:
-            trigger = True
+        resource = requests.get(resource_url+access_token)
+        resource = resource.json()
+        for key in path_for_desired_resource:
+            key = autoconvert(key)
+            resource = resource[key]
+        if len(resource) > original_count:
+            our_response["new_resource_added"] = True
             break
-        time.sleep(1)
-    if not trigger:
-        return json.dumps(response)
+        time.sleep(2)
+        timer = timer + 2
+    if not our_response["new_resource_added"]:
+        return json.dumps(our_response) # timeout
+    else:
+        response["timeout"] = False
 
     # Default
-    # if third_party_service == 'facebook':
     # Facebook has new pages appear at the end of the list
-    the_new_thing = rjson.pop()
+    if third_party_service == 'facebook':
+        the_new_thing = resource.pop()
+    # Foursquare has new tips as the first in the list
+    if third_party_service == 'foursquare':
+        the_new_thing = resource.pop(0)
 
-    # if third_party_service == 'foursquare':
-    #     # Foursquare has new tips as the first in the list
-    #     the_new_thing = rjson.pop(0)
+    # Remember an attribute of the new thing
+    response["resource_attribute_to_remember"] = get_data_at_endpoint(the_new_thing, path_for_attribute_to_remember)
 
-    # Save the thing_to_remember in the database
-    thing_to_remember = get_data_at_endpoint(the_new_thing, thing_to_remember_endpoints)
-    thing_to_remember_db = Thing_to_remember(access_token,thing_to_remember)
-    db.session.add(thing_to_remember_db)
-    db.session.commit()
-
-    # Return the value at the trigger_value endpoint
-    response["new_thing_name"] = get_data_at_endpoint(the_new_thing, trigger_value_endpoints)
-    response['timeout'] = False
+    # Return an attribute to display
+    response["resource_attribute_to_display"] = get_data_at_endpoint(the_new_thing, path_for_attribute_to_display)
     return json.dumps(response)
 
+    # # Save the thing_to_remember in the database
+    # thing_to_remember = get_data_at_endpoint(the_new_thing, thing_to_remember_endpoints)
+    # thing_to_remember_db = Thing_to_remember(access_token,thing_to_remember)
+    # db.session.add(thing_to_remember_db)
+    # db.session.commit()
 
-# Refactor to combine with the above
+@app.route('/check_for_value', methods=['POST'])
+def check_for_value():
+    # Check for value
+    # Return value
+
+    our_response = {
+        "resource_attribute_to_display" : False,
+        "timeout" : True
+    }
+
+    access_token = request.args['access_token']
+    resource_url = request.form['triggerEndpoint']
+    path_for_desired_resource = request.form['triggerCheck'].split(',')
+    
+    # Check api_resource_url every two seconds for a value
+    timer = 0
+    while timer < 60:
+        resource = requests.get(resource_url+access_token)
+        resource = resource.json()
+        for key in path_for_desired_resource:
+            key = autoconvert(key)
+            resource = resource[key]
+        if resource:
+            
+
+
+
+# Refactor to combine with check_for_new
 @app.route('/check_for_new_tip', methods=['POST'])
 def check_for_new_tip():
 
