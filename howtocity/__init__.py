@@ -164,28 +164,28 @@ def autoconvert(s):
 
 @app.route('/check_for_new', methods=['POST'])
 def check_for_new():
-    # Check if new thing exists
-    # Remember new thing
+    # Check if new object exists
+    # Remember new onect
     # Return desired endpoint
 
     our_response = {
-        "resource_attribute_to_display" : False,
-        "resource_attribute_to_remember" : False,
-        "new_resource_added" : False,
+        "attribute_to_display" : False,
+        "attribute_to_remember" : False,
+        "new_object_added" : False,
         "timeout" : True
     }
 
     access_token = request.args['access_token']
     third_party_service = request.form['thirdPartyService']
     resource_url = request.form['currentStep[triggerEndpoint]']
-    path_for_desired_resource = request.form['currentStep[triggerCheck]'].split(',')
+    path_for_objects = request.form['currentStep[triggerCheck]'].split(',')
     path_for_attribute_to_display = request.form['currentStep[triggerValue]'].split(',')
     path_for_attribute_to_remember = request.form['currentStep[thingToRemember]'].split(',')
 
     # Grab the original count of the resource.
     resource = requests.get(resource_url+access_token)
     resource = resource.json()
-    for key in path_for_desired_resource:
+    for key in path_for_objects:
         key = autoconvert(key)
         resource = resource[key]
     original_count = len(resource)
@@ -195,40 +195,40 @@ def check_for_new():
     while timer < 60:
         resource = requests.get(resource_url+access_token)
         resource = resource.json()
-        for key in path_for_desired_resource:
+        for key in path_for_objects:
             key = autoconvert(key)
             resource = resource[key]
         if len(resource) > original_count:
-            our_response["new_resource_added"] = True
+            our_response["new_object_added"] = True
             break
         time.sleep(2)
         timer = timer + 2
-    if not our_response["new_resource_added"]:
+    if not our_response["new_object_added"]:
         return json.dumps(our_response) # timeout
     else:
         our_response["timeout"] = False
 
     # Facebook has new pages appear at the end of the list
     if third_party_service == 'facebook':
-        the_new_thing = resource.pop()
+        the_new_object = resource.pop()
     # Foursquare has new tips as the first in the list
     if third_party_service == 'foursquare':
-        the_new_thing = resource.pop(0)
+        the_new_object = resource.pop(0)
 
-    # Remember an attribute of the new thing
-    our_response["resource_attribute_to_remember"] = get_data_at_endpoint(the_new_thing, path_for_attribute_to_remember)
     # Return an attribute to display
-    our_response["resource_attribute_to_display"] = get_data_at_endpoint(the_new_thing, path_for_attribute_to_display)
+    our_response["attribute_to_display"] = get_data_at_endpoint(the_new_object, path_for_attribute_to_display)
+    # Remember an attribute of the new object
+    our_response["attribute_to_remember"] = get_data_at_endpoint(the_new_object, path_for_attribute_to_remember)
     return json.dumps(our_response)
 
-@app.route('/check_for_value', methods=['POST'])
-def check_for_value():
-    import pdb; pdb.set_trace()
-    # Check for value
-    # Return value
+@app.route('/check_if_attribute_exists', methods=['POST'])
+def check_if_attribute_exists():
+    # Check if attribute exists
+    # Return attribute
 
     our_response = {
-        "resource_attribute_to_display" : False,
+        "attribute_exists" : False,
+        "attribute_to_display" : False,
         "timeout" : True
     }
 
@@ -239,27 +239,62 @@ def check_for_value():
         resource_url = resource_url.replace('replace_me',remembered_attribute)
     except:
         pass
-    path_for_desired_resource = request.form['currentStep[triggerCheck]'].split(',')
+    path_for_attribute_to_display = request.form['currentStep[triggerCheck]'].split(',')
     
     # Check api_resource_url every two seconds for a value
     timer = 0
     while timer < 60:
         resource = requests.get(resource_url+access_token)
         resource = resource.json()
-        print type(resource)
-        for key in path_for_desired_resource:
+        for key in path_for_attribute_to_display:
             key = autoconvert(key)
             if key in resource:
                 resource = resource[key]
         # If resource is still a dict, we didn't find what we were looking for.
         if type(resource) != dict:
-            our_response["resource_attribute_to_display"] = resource
+            our_response["attribute_exists"] = True
+            our_response["attribute_to_display"] = resource
             our_response["timeout"] = False
             return json.dumps(our_response)
+        time.sleep(2)
+        timer = timer + 2
     return json.dumps(our_response)
 
+@app.route('/check_attribute_for_value', methods=['POST'])
+def check_attribute_for_value():
+    # Check attribute for value
+    # If it matches, return other attribute
+    our_response = {
+        "attribute_value_matches" : False,
+        "attribute_to_display" : False,
+        "timeout" : True
+    }
 
+    access_token = request.args['access_token']
+    resource_url = request.form['currentStep[triggerEndpoint]']
+    remembered_attribute = request.form['rememberedAttribute']
+    try:
+        resource_url = resource_url.replace('replace_me',remembered_attribute)
+    except:
+        pass
+    trigger_checks = request.form['currentStep[triggerCheck]'].split(',')
+    trigger_value = request.form['currentStep[triggerValue]']
+    path_for_attribute_to_display = request.form['currentStep[thingToRemember]'].split(',')
 
+    timer = 0
+    while timer < 60:
+        resource = requests.get(resource_url+access_token)
+        resource = resource.json()
+        trigger_check = get_data_at_endpoint(resource, trigger_checks)
+        trigger_value = autoconvert(trigger_value)
+        if trigger_check == trigger_value:
+            our_response["attribute_value_matches"] = True
+            our_response["attribute_to_display"] = get_data_at_endpoint(resource,path_for_attribute_to_display)
+            our_response["timeout"] = False
+            return json.dumps(our_response)
+        time.sleep(2)
+        timer = timer + 2
+    return json.dumps(our_response)
 
 # # Refactor to combine with check_for_new
 # @app.route('/check_for_new_tip', methods=['POST'])
@@ -317,39 +352,6 @@ def check_for_value():
 #         if trigger_check_endpoint in rjson:
 #             # if trigger_value_endpoint in rjson:
 #             response["new_data"] = rjson[trigger_check_endpoint]
-#             response['timeout'] = False
-#             return json.dumps(response)
-#         timer = timer + 1
-#         time.sleep(1)
-#     return json.dumps(response)
-
-# @app.route('/get_added_data', methods=['POST'])
-# def get_added_data():
-
-#     response = {
-#         "new_data" : False,
-#         "timeout" : True
-#     }
-
-#     # Doesn't actually need to return the photo from FB.
-#     access_token = request.args['access_token']
-#     trigger_endpoint = request.form['triggerEndpoint']
-#     trigger_check_endpoints = request.form['triggerCheck'].split(',')
-#     trigger_value = request.form['triggerValue']
-#     trigger_value2_endpoints = request.form['thingToRemember'].split(',')
-#     things_to_remember = Thing_to_remember.query.filter_by(access_token=access_token).all()
-#     thing_to_remember = things_to_remember.pop() # Get just the last thing
-#     trigger_endpoint = trigger_endpoint.replace('replace_me',str(thing_to_remember))
-#     timer = 0
-#     while timer < 60:
-#         r = requests.get(trigger_endpoint+access_token)
-#         rjson = r.json()
-#         # Check if certain endpoint equals something
-#         trigger_check = get_data_at_endpoint(rjson, trigger_check_endpoints)
-#         trigger_value2 = get_data_at_endpoint(rjson, trigger_value2_endpoints)
-#         trigger_value = autoconvert(trigger_value)
-#         if trigger_check == trigger_value:
-#             response["new_data"] = trigger_value2
 #             response['timeout'] = False
 #             return json.dumps(response)
 #         timer = timer + 1
