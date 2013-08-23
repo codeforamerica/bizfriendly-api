@@ -9,7 +9,6 @@ import os, requests, json, time
 # initialization
 #----------------------------------------
 
-
 app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
@@ -163,38 +162,6 @@ def autoconvert(s):
             pass
     return s
 
-@app.route('/logged_in', methods=['POST'])
-def logged_in():
-
-    response = {
-        "logged_in" : False,
-        "timeout" : True
-    }
-
-    # Check if the user is logged into the service
-    access_token = request.args['access_token']
-    trigger_endpoint = request.form['triggerEndpoint']
-    trigger_check_endpoints = request.form['triggerCheck'].split(',')
-    trigger_value = request.form['triggerValue']
-    timer = 0
-    while timer < 60:
-        timer = timer + 1
-        r = requests.get(trigger_endpoint+access_token)
-        rjson = r.json()
-        for trigger_check_endpoint in trigger_check_endpoints:
-            try:
-                rjson = rjson[trigger_check_endpoint]
-            except KeyError:
-                # return 'The trigger check endpoint is set up wrong.'
-                pass
-        trigger_value = autoconvert(trigger_value)
-        if rjson == trigger_value:
-            response['logged_in'] = True
-            response['timeout'] = False
-            return json.dumps(response)
-        time.sleep(1)
-    return json.dumps(response)
-
 @app.route('/check_for_new', methods=['POST'])
 def check_for_new():
     # Check if new thing exists
@@ -207,13 +174,13 @@ def check_for_new():
         "new_resource_added" : False,
         "timeout" : True
     }
-    
+
     access_token = request.args['access_token']
     third_party_service = request.form['thirdPartyService']
-    resource_url = request.form['triggerEndpoint']
-    path_for_desired_resource = request.form['triggerCheck'].split(',')
-    path_for_attribute_to_display = request.form['triggerValue'].split(',')
-    path_for_attribute_to_remember = request.form['thingToRemember'].split(',')
+    resource_url = request.form['currentStep[triggerEndpoint]']
+    path_for_desired_resource = request.form['currentStep[triggerCheck]'].split(',')
+    path_for_attribute_to_display = request.form['currentStep[triggerValue]'].split(',')
+    path_for_attribute_to_remember = request.form['currentStep[thingToRemember]'].split(',')
 
     # Grab the original count of the resource.
     resource = requests.get(resource_url+access_token)
@@ -223,7 +190,7 @@ def check_for_new():
         resource = resource[key]
     original_count = len(resource)
 
-    #  Check api_resource_url every two seconds for a new additon at path_of_resource_to_check
+    #  Check api_resource_url every two seconds for a new addition at path_of_resource_to_check
     timer = 0
     while timer < 60:
         resource = requests.get(resource_url+access_token)
@@ -239,9 +206,8 @@ def check_for_new():
     if not our_response["new_resource_added"]:
         return json.dumps(our_response) # timeout
     else:
-        response["timeout"] = False
+        our_response["timeout"] = False
 
-    # Default
     # Facebook has new pages appear at the end of the list
     if third_party_service == 'facebook':
         the_new_thing = resource.pop()
@@ -250,20 +216,14 @@ def check_for_new():
         the_new_thing = resource.pop(0)
 
     # Remember an attribute of the new thing
-    response["resource_attribute_to_remember"] = get_data_at_endpoint(the_new_thing, path_for_attribute_to_remember)
-
+    our_response["resource_attribute_to_remember"] = get_data_at_endpoint(the_new_thing, path_for_attribute_to_remember)
     # Return an attribute to display
-    response["resource_attribute_to_display"] = get_data_at_endpoint(the_new_thing, path_for_attribute_to_display)
-    return json.dumps(response)
-
-    # # Save the thing_to_remember in the database
-    # thing_to_remember = get_data_at_endpoint(the_new_thing, thing_to_remember_endpoints)
-    # thing_to_remember_db = Thing_to_remember(access_token,thing_to_remember)
-    # db.session.add(thing_to_remember_db)
-    # db.session.commit()
+    our_response["resource_attribute_to_display"] = get_data_at_endpoint(the_new_thing, path_for_attribute_to_display)
+    return json.dumps(our_response)
 
 @app.route('/check_for_value', methods=['POST'])
 def check_for_value():
+    import pdb; pdb.set_trace()
     # Check for value
     # Return value
 
@@ -273,113 +233,125 @@ def check_for_value():
     }
 
     access_token = request.args['access_token']
-    resource_url = request.form['triggerEndpoint']
-    path_for_desired_resource = request.form['triggerCheck'].split(',')
+    resource_url = request.form['currentStep[triggerEndpoint]']
+    remembered_attribute = request.form['rememberedAttribute']
+    try:
+        resource_url = resource_url.replace('replace_me',remembered_attribute)
+    except:
+        pass
+    path_for_desired_resource = request.form['currentStep[triggerCheck]'].split(',')
     
     # Check api_resource_url every two seconds for a value
     timer = 0
     while timer < 60:
         resource = requests.get(resource_url+access_token)
         resource = resource.json()
+        print type(resource)
         for key in path_for_desired_resource:
             key = autoconvert(key)
-            resource = resource[key]
-        if resource:
-            
+            if key in resource:
+                resource = resource[key]
+        # If resource is still a dict, we didn't find what we were looking for.
+        if type(resource) != dict:
+            our_response["resource_attribute_to_display"] = resource
+            our_response["timeout"] = False
+            return json.dumps(our_response)
+    return json.dumps(our_response)
 
 
 
-# Refactor to combine with check_for_new
-@app.route('/check_for_new_tip', methods=['POST'])
-def check_for_new_tip():
 
-    response = {
-        "new_tip_added" : False,
-        "timeout" : True
-    }
+# # Refactor to combine with check_for_new
+# @app.route('/check_for_new_tip', methods=['POST'])
+# def check_for_new_tip():
 
-    access_token = request.args['access_token']
-    third_party_service = request.form['thirdPartyService']
-    trigger_endpoint = request.form['triggerEndpoint']
-    trigger_check_endpoints = request.form['triggerCheck'].split(',')
-    trigger_value_endpoints = request.form['triggerValue'].split(',')
-    thing_to_remember_endpoints = request.form['thingToRemember'].split(',')
-    trigger = False
-    original_count = 10000000
-    original_count_flag = False
-    timer = 0
-    while timer < 60:
-        timer = timer + 1
-        r = requests.get(trigger_endpoint+access_token)
-        rjson = r.json()
-        for trigger_check_endpoint in trigger_check_endpoints:
-            trigger_check_endpoint = autoconvert(trigger_check_endpoint)
-            rjson = rjson[trigger_check_endpoint]
-        if not original_count_flag:
-            original_count = len(rjson)
-            original_count_flag = True
-        if len(rjson) > original_count:
-            response['new_tip_added'] = True
-        time.sleep(1)
-    return json.dumps(response)
+#     response = {
+#         "new_tip_added" : False,
+#         "timeout" : True
+#     }
 
-@app.route('/get_remembered_thing', methods=['POST'])
-def get_remembered_thing():
+#     access_token = request.args['access_token']
+#     third_party_service = request.form['thirdPartyService']
+#     trigger_endpoint = request.form['triggerEndpoint']
+#     trigger_check_endpoints = request.form['triggerCheck'].split(',')
+#     trigger_value_endpoints = request.form['triggerValue'].split(',')
+#     thing_to_remember_endpoints = request.form['thingToRemember'].split(',')
+#     trigger = False
+#     original_count = 10000000
+#     original_count_flag = False
+#     timer = 0
+#     while timer < 60:
+#         timer = timer + 1
+#         r = requests.get(trigger_endpoint+access_token)
+#         rjson = r.json()
+#         for trigger_check_endpoint in trigger_check_endpoints:
+#             trigger_check_endpoint = autoconvert(trigger_check_endpoint)
+#             rjson = rjson[trigger_check_endpoint]
+#         if not original_count_flag:
+#             original_count = len(rjson)
+#             original_count_flag = True
+#         if len(rjson) > original_count:
+#             response['new_tip_added'] = True
+#         time.sleep(1)
+#     return json.dumps(response)
 
-    response = {
-        "new_data" : False,
-        "timeout" : True
-    }
+# @app.route('/get_remembered_thing', methods=['POST'])
+# def get_remembered_thing():
 
-    access_token = request.args['access_token']
-    trigger_endpoint = request.form['triggerEndpoint']
-    trigger_check_endpoint = request.form['triggerCheck']
-    trigger_value_endpoint = request.form['triggerValue']
-    things_to_remember = Thing_to_remember.query.filter_by(access_token=access_token).all()
-    thing_to_remember = things_to_remember.pop() # Get just the last thing
-    trigger_endpoint = trigger_endpoint.replace('replace_me',str(thing_to_remember))
-    timer = 0
-    while timer < 60:
-        r = requests.get(trigger_endpoint+access_token)
-        rjson = r.json()
-        if trigger_check_endpoint in rjson:
-            # if trigger_value_endpoint in rjson:
-            response["new_data"] = rjson[trigger_check_endpoint]
-            response['timeout'] = False
-            return json.dumps(response)
-        timer = timer + 1
-        time.sleep(1)
-    return json.dumps(response)
+#     response = {
+#         "new_data" : False,
+#         "timeout" : True
+#     }
 
-@app.route('/get_added_data', methods=['POST'])
-def get_added_data():
+#     access_token = request.args['access_token']
+#     trigger_endpoint = request.form['triggerEndpoint']
+#     trigger_check_endpoint = request.form['triggerCheck']
+#     trigger_value_endpoint = request.form['triggerValue']
+#     things_to_remember = Thing_to_remember.query.filter_by(access_token=access_token).all()
+#     thing_to_remember = things_to_remember.pop() # Get just the last thing
+#     trigger_endpoint = trigger_endpoint.replace('replace_me',str(thing_to_remember))
+#     timer = 0
+#     while timer < 60:
+#         r = requests.get(trigger_endpoint+access_token)
+#         rjson = r.json()
+#         if trigger_check_endpoint in rjson:
+#             # if trigger_value_endpoint in rjson:
+#             response["new_data"] = rjson[trigger_check_endpoint]
+#             response['timeout'] = False
+#             return json.dumps(response)
+#         timer = timer + 1
+#         time.sleep(1)
+#     return json.dumps(response)
 
-    response = {
-        "new_data" : False,
-        "timeout" : True
-    }
+# @app.route('/get_added_data', methods=['POST'])
+# def get_added_data():
 
-    # Doesn't actually need to return the photo from FB.
-    access_token = request.args['access_token']
-    trigger_endpoint = request.form['triggerEndpoint']
-    trigger_check_endpoints = request.form['triggerCheck'].split(',')
-    trigger_value = request.form['triggerValue']
-    trigger_value2_endpoints = request.form['thingToRemember'].split(',')
-    things_to_remember = Thing_to_remember.query.filter_by(access_token=access_token).all()
-    thing_to_remember = things_to_remember.pop() # Get just the last thing
-    trigger_endpoint = trigger_endpoint.replace('replace_me',str(thing_to_remember))
-    timer = 0
-    while timer < 60:
-        r = requests.get(trigger_endpoint+access_token)
-        rjson = r.json()
-        # Check if certain endpoint equals something
-        trigger_check = get_data_at_endpoint(rjson, trigger_check_endpoints)
-        trigger_value2 = get_data_at_endpoint(rjson, trigger_value2_endpoints)
-        trigger_value = autoconvert(trigger_value)
-        if trigger_check == trigger_value:
-            response["new_data"] = trigger_value2
-            response['timeout'] = False
-            return json.dumps(response)
-        timer = timer + 1
-        time.sleep(1)
-    return json.dumps(response)
+#     response = {
+#         "new_data" : False,
+#         "timeout" : True
+#     }
+
+#     # Doesn't actually need to return the photo from FB.
+#     access_token = request.args['access_token']
+#     trigger_endpoint = request.form['triggerEndpoint']
+#     trigger_check_endpoints = request.form['triggerCheck'].split(',')
+#     trigger_value = request.form['triggerValue']
+#     trigger_value2_endpoints = request.form['thingToRemember'].split(',')
+#     things_to_remember = Thing_to_remember.query.filter_by(access_token=access_token).all()
+#     thing_to_remember = things_to_remember.pop() # Get just the last thing
+#     trigger_endpoint = trigger_endpoint.replace('replace_me',str(thing_to_remember))
+#     timer = 0
+#     while timer < 60:
+#         r = requests.get(trigger_endpoint+access_token)
+#         rjson = r.json()
+#         # Check if certain endpoint equals something
+#         trigger_check = get_data_at_endpoint(rjson, trigger_check_endpoints)
+#         trigger_value2 = get_data_at_endpoint(rjson, trigger_value2_endpoints)
+#         trigger_value = autoconvert(trigger_value)
+#         if trigger_check == trigger_value:
+#             response["new_data"] = trigger_value2
+#             response['timeout'] = False
+#             return json.dumps(response)
+#         timer = timer + 1
+#         time.sleep(1)
+#     return json.dumps(response)
