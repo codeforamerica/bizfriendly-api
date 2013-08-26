@@ -17,8 +17,8 @@ heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
     DEBUG = True,
-    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
-    SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
+    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    # SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
     # SECRET_KEY = '123456'
 )
 
@@ -195,11 +195,11 @@ class Thing_to_remember(db.Model):
 
 # API ------------------------------------------------------------
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
-manager.create_api(Category, methods=['GET', 'POST', 'DELETE'], url_prefix='/api/v1', collection_name='categories')
-manager.create_api(Lesson, methods=['GET', 'POST', 'DELETE'], url_prefix='/api/v1', collection_name='lessons')
-manager.create_api(Step, methods=['GET', 'POST', 'DELETE'], url_prefix='/api/v1', collection_name='steps')
-manager.create_api(Bf_user, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='users')
-manager.create_api(UserLesson, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='userlessons')
+manager.create_api(Category, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='categories')
+manager.create_api(Lesson, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='lessons')
+manager.create_api(Step, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='steps')
+# manager.create_api(Bf_user, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='users')
+# manager.create_api(UserLesson, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='userlessons')
 
 # ADMIN ------------------------------------------------------------
 admin = Admin(app, name='How to City', url='/api/admin')
@@ -215,19 +215,19 @@ class StepView(ModelView):
 	column_display_pk = True
 	column_auto_select_related = True
 
-class Bf_userView(ModelView):
-    column_display_pk = True
-    column_auto_select_related = True
+# class Bf_userView(ModelView):
+#     column_display_pk = True
+#     column_auto_select_related = True
 
-class UserLessonView(ModelView):
-    column_display_pk = True
-    column_auto_select_related = True
+# class UserLessonView(ModelView):
+#     column_display_pk = True
+#     column_auto_select_related = True
 
 admin.add_view(CategoryView(Category, db.session))
 admin.add_view(LessonView(Lesson, db.session))
 admin.add_view(StepView(Step, db.session))
-admin.add_view(Bf_userView(Bf_user, db.session))
-admin.add_view(UserLessonView(UserLesson, db.session))
+# admin.add_view(Bf_userView(Bf_user, db.session))
+# admin.add_view(UserLessonView(UserLesson, db.session))
 
 # Functions --------------------------------------------------------
 
