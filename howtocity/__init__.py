@@ -145,6 +145,7 @@ admin.add_view(StepView(Step, db.session))
 
 def get_data_at_endpoint(json_data, endpoints):
     for endpoint in endpoints:
+        endpoint = autoconvert(endpoint)
         json_data = json_data[endpoint]
     data = json_data # Should be a string or int now, not json
     return data
@@ -303,6 +304,36 @@ def check_attribute_for_value():
         time.sleep(2)
         timer = timer + 2
     return json.dumps(our_response)
+
+@app.route('/get_attributes', methods=['POST'])
+def get_attributes():
+    # Get the attributes from the resource_url
+    # If remembered_attributes exists, use that as the id
+    our_response = {
+        "attribute" : False,
+        "attribute_2" : False,
+        "attribute_3" : False
+    }
+
+    access_token = request.args['access_token']
+    resource_url = request.form['currentStep[triggerEndpoint]']
+    remembered_attribute = request.form['rememberedAttribute']
+    try:
+        resource_url = resource_url.replace('replace_me',remembered_attribute)
+    except:
+        pass
+    path_for_attribute = request.form['currentStep[triggerCheck]'].split(',')
+    path_for_attribute_2 = request.form['currentStep[triggerValue]'].split(',')
+    path_for_attribute_3 = request.form['currentStep[thingToRemember]'].split(',')
+
+    resource = requests.get(resource_url+access_token)
+    resource = resource.json()
+    our_response["attribute"] = get_data_at_endpoint(resource, path_for_attribute)
+    our_response["attribute_2"] = get_data_at_endpoint(resource, path_for_attribute_2)
+    our_response["attribute_3"] = get_data_at_endpoint(resource, path_for_attribute_3)
+    return json.dumps(our_response)
+
+
 
 # # Refactor to combine with check_for_new
 # @app.route('/check_for_new_tip', methods=['POST'])
