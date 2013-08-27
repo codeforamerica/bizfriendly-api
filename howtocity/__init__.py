@@ -132,8 +132,10 @@ class LessonView(ModelView):
     column_auto_select_related = True
 
 class StepView(ModelView):
-	column_display_pk = True
-	column_auto_select_related = True
+    column_display_pk = True
+    column_auto_select_related = True
+    column_list = ('lesson_id','lesson','id','name','step_number','step_type','step_text','trigger_endpoint','trigger_check','trigger_value','thing_to_remember','feedback','next_step_number')
+    column_sortable_list = (('lesson_id',Lesson.id),'name','step_type')
 
 admin.add_view(CategoryView(Category, db.session))
 admin.add_view(LessonView(Lesson, db.session))
