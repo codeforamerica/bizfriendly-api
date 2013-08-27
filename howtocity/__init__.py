@@ -164,14 +164,16 @@ def autoconvert(s):
 
 @app.route('/check_for_new', methods=['POST'])
 def check_for_new():
-    # Check if new object exists
-    # Remember new onect
+    # Check once for original count of objects
+    # then check if new object exists
+    # Remember new object
     # Return desired endpoint
 
     our_response = {
         "attribute_to_display" : False,
         "attribute_to_remember" : False,
         "new_object_added" : False,
+        "original_count" : False,
         "timeout" : True
     }
 
@@ -181,14 +183,18 @@ def check_for_new():
     path_for_objects = request.form['currentStep[triggerCheck]'].split(',')
     path_for_attribute_to_display = request.form['currentStep[triggerValue]'].split(',')
     path_for_attribute_to_remember = request.form['currentStep[thingToRemember]'].split(',')
-
-    # Grab the original count of the resource.
-    resource = requests.get(resource_url+access_token)
-    resource = resource.json()
-    for key in path_for_objects:
-        key = autoconvert(key)
-        resource = resource[key]
-    original_count = len(resource)
+    original_count = autoconvert(request.form['originalCount'])
+    # If original_count is false in post data, then just return the count of objects at the endpoint.
+    if not original_count:
+        resource = requests.get(resource_url+access_token)
+        resource = resource.json()
+        for key in path_for_objects:
+            key = autoconvert(key)
+            resource = resource[key]
+        original_count = len(resource)
+        our_response["original_count"] = original_count
+        our_response["timeout"] = False
+        return json.dumps(our_response)
 
     #  Check api_resource_url every two seconds for a new addition at path_of_resource_to_check
     timer = 0
