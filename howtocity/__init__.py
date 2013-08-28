@@ -143,7 +143,7 @@ class Bf_user(db.Model):
         salt, hsh = self.password.split('$')
         return hashlib.sha256(salt + raw_password).hexdigest() == hsh
 
-    def make_authd_req(self, service, req_url):
+    def make_authorized_request(self, service, req_url):
         for connection in self.connections:
             if connection.service == service:
                 return http_get(req_url + connection.access_token, headers={'User-Agent': 'Python'})
@@ -212,8 +212,10 @@ class LessonView(ModelView):
     column_auto_select_related = True
 
 class StepView(ModelView):
-	column_display_pk = True
-	column_auto_select_related = True
+    column_display_pk = True
+    column_auto_select_related = True
+    column_list = ('lesson_id','lesson','id','name','step_number','step_type','step_text','trigger_endpoint','trigger_check','trigger_value','thing_to_remember','feedback','next_step_number')
+    column_sortable_list = (('lesson_id',Lesson.id),'name','step_type')
 
 # class Bf_userView(ModelView):
 #     column_display_pk = True
@@ -233,6 +235,7 @@ admin.add_view(StepView(Step, db.session))
 
 def get_data_at_endpoint(json_data, endpoints):
     for endpoint in endpoints:
+        endpoint = autoconvert(endpoint)
         json_data = json_data[endpoint]
     data = json_data # Should be a string or int now, not json
     return data
@@ -267,12 +270,12 @@ def logged_in():
         return make_response(response, 403)
     # Check database for connection between this user and this service
     service_name = request.form['lessonService'].lower()
-    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
-    if not cur_user:
+    current_user = Bf_user.query.filter_by(access_token=htc_access).first()
+    if not current_user:
         response['status'] = 404
         response['error'] = 'No user found.'
     else:
-        for connection in cur_user.connections:
+        for connection in current_user.connections:
             if connection.service == service_name:
                 response['status'] = 200
                 response['logged_in'] = True
@@ -282,207 +285,249 @@ def logged_in():
     response.headers['content-type'] = 'application/json'
     return response
 
+
 @app.route('/check_for_new', methods=['POST'])
 def check_for_new():
-    # Check if something new gets added to the 
-    # triggerCheck of the triggerEndpoint.
-    # When something new appears, remember the thingToRemember
-    # then return the triggerValue.
-    response = {
-        "new_thing_name" : False,
+    # Check once for original count of objects
+    # then check if new object exists
+    # Remember new object
+    # Return desired endpoint
+
+    our_response = {
+        "attribute_to_display" : False,
+        "attribute_to_remember" : False,
+        "new_object_added" : False,
+        "original_count" : False,
         "timeout" : True
     }
+
+    
+
     # Require Authorization header for this endpoint
     if 'Authorization' in request.headers:
         htc_access = request.headers['Authorization']
     else:
         response['error'] = 'Authorization required'
         return make_response(response, 403)
-    service_name = request.form['lessonService'].lower()
-    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
-    trigger_endpoint = request.form['triggerEndpoint']
-    trigger_check_endpoints = request.form['triggerCheck'].split(',')
-    trigger_value_endpoints = request.form['triggerValue'].split(',')
-    thing_to_remember_endpoints = request.form['thingToRemember'].split(',')
-    trigger = False
-    original_count = 10000000
-    original_count_flag = False
+
+    current_user = Bf_user.query.filter_by(access_token=htc_access).first()
+    
+    third_party_service = request.form['thirdPartyService']
+    
+    if app.config['DEBUG']:
+        if third_party_service == 'facebook':
+            our_response = {
+                "attribute_to_display" : "TEST PAGE",
+                "attribute_to_remember" : 297429370396923,
+                "new_object_added" : True,
+                "original_count" : 10000000,
+                "timeout" : False
+            }
+
+    resource_url = request.form['currentStep[triggerEndpoint]']
+    if 'rememberedAttribute' in request.form:
+        remembered_attribute = request.form['rememberedAttribute']
+    try:
+        resource_url = resource_url.replace('replace_me',remembered_attribute)
+    except:
+        pass
+    path_for_objects = request.form['currentStep[triggerCheck]'].split(',')
+    path_for_attribute_to_display = request.form['currentStep[triggerValue]'].split(',')
+    path_for_attribute_to_remember = request.form['currentStep[thingToRemember]'].split(',')
+    original_count = autoconvert(request.form['originalCount'])
+    # If original_count is false in post data, then just return the count of objects at the endpoint.
+    if not original_count:
+        # r = current_user.make_authorized_request(service_name, trigger_endpoint)
+        resource = current_user.make_authorized_request(third_party_service, resource_url)
+        resource = resource.json()
+        for key in path_for_objects:
+            key = autoconvert(key)
+            resource = resource[key]
+        original_count = len(resource)
+        our_response["original_count"] = original_count
+        our_response["timeout"] = False
+        return make_response(json.dumps(our_response), 200)
+
+    #  Check api_resource_url every two seconds for a new addition at path_of_resource_to_check
     timer = 0
     while timer < 60:
-        timer = timer + 1
-        r = cur_user.make_authd_req(service_name, trigger_endpoint)
-        rjson = r.json()
-        print rjson
-        for trigger_check_endpoint in trigger_check_endpoints:
-            trigger_check_endpoint = autoconvert(trigger_check_endpoint)
-            rjson = rjson[trigger_check_endpoint]
-        if not original_count_flag:
-            original_count = len(rjson)
-            original_count_flag = True
-        if len(rjson) > original_count:
-            trigger = True
+        resource = current_user.make_authorized_request(third_party_service, resource_url)
+        resource = resource.json()
+        for key in path_for_objects:
+            key = autoconvert(key)
+            resource = resource[key] 
+        if len(resource) > original_count:
+            our_response["new_object_added"] = True
             break
-        time.sleep(1)
-    if not trigger:
-        return make_response(json.dumps(response), 200)
-
-    # Default
-    # if third_party_service == 'facebook':
-    # Facebook has new pages appear at the end of the list
-    the_new_thing = rjson.pop()
-
-    # if third_party_service == 'foursquare':
-    #     # Foursquare has new tips as the first in the list
-    #     the_new_thing = rjson.pop(0)
-
-    # Save the thing_to_remember in the database
-    # Todo: Better temporary way to remember something.
-    # Only remember one thing per user.
-    thing_to_remember = get_data_at_endpoint(the_new_thing, thing_to_remember_endpoints)
-    thing_to_remember_db = Thing_to_remember.query.filter_by(access_token=htc_access).first()
-    if thing_to_remember_db:
-        thing_to_remember_db.thing_to_remember = thing_to_remember
+        time.sleep(2)
+        timer = timer + 2
+    if not our_response["new_object_added"]:
+        return make_response(json.dumps(our_response), 200) # timeout
     else:
-        thing_to_remember_db = Thing_to_remember(htc_access,thing_to_remember)
-        db.session.add(thing_to_remember_db)
-    db.session.commit()
+        our_response["timeout"] = False
+    if third_party_service == 'facebook':
+        the_new_object = resource.pop()
+    # Foursquare has new tips as the first in the list
+    if third_party_service == 'foursquare':
+        the_new_object = resource.pop(0)
 
-    # Return the value at the trigger_value endpoint
-    response["new_thing_name"] = get_data_at_endpoint(the_new_thing, trigger_value_endpoints)
-    response['timeout'] = False
-    response = make_response(json.dumps(response), 200)
-    response.headers['content-type'] = 'application/json'
-    return response
+    # Return an attribute to display if its not blank.
+    if path_for_attribute_to_display[0]:
+        our_response["attribute_to_display"] = get_data_at_endpoint(the_new_object, path_for_attribute_to_display)
+    # Remember an attribute of the new object if its not blank.
+    if path_for_attribute_to_remember[0]:
+        our_response["attribute_to_remember"] = get_data_at_endpoint(the_new_object, path_for_attribute_to_remember)
+    return make_response(json.dumps(our_response), 200)
 
+@app.route('/check_if_attribute_exists', methods=['POST'])
+def check_if_attribute_exists():
+    # Check if attribute exists
+    # Return attribute
 
-# Refactor to combine with the above
-@app.route('/check_for_new_tip', methods=['POST'])
-def check_for_new_tip():
-
-    response = {
-        "new_tip_added" : False,
+    our_response = {
+        "attribute_exists" : False,
+        "attribute_to_display" : False,
         "timeout" : True
     }
+
     # Require Authorization header for this endpoint
     if 'Authorization' in request.headers:
         htc_access = request.headers['Authorization']
     else:
         response['error'] = 'Authorization required'
-        return make_response(json.dumps(response), 403)
+        return make_response(response, 403)
+
+    current_user = Bf_user.query.filter_by(access_token=htc_access).first()
+
     third_party_service = request.form['thirdPartyService']
-    trigger_endpoint = request.form['triggerEndpoint']
-    trigger_check_endpoints = request.form['triggerCheck'].split(',')
-    trigger_value_endpoints = request.form['triggerValue'].split(',')
-    thing_to_remember_endpoints = request.form['thingToRemember'].split(',')
-    trigger = False
-    original_count = 10000000
-    original_count_flag = False
+    resource_url = request.form['currentStep[triggerEndpoint]']
+    if 'rememberedAttribute' in request.form:
+        remembered_attribute = request.form['rememberedAttribute']
+    try:
+        resource_url = resource_url.replace('replace_me',remembered_attribute)
+    except:
+        pass
+    path_for_attribute_to_display = request.form['currentStep[triggerCheck]'].split(',')
+    
+    # Check api_resource_url every two seconds for a value
     timer = 0
-    while timer < 5:
-        timer = timer + 1
-        r = requests.get(trigger_endpoint+htc_access)
-        rjson = r.json()
-        for trigger_check_endpoint in trigger_check_endpoints:
-            trigger_check_endpoint = autoconvert(trigger_check_endpoint)
-            rjson = rjson[trigger_check_endpoint]
-        if not original_count_flag:
-            original_count = len(rjson)
-            original_count_flag = True
-        if len(rjson) > original_count:
-            response['new_tip_added'] = True
-        time.sleep(1)
-    response = make_response(json.dump(response), 200)
-    response.headers['content-type'] = 'application/json'
-    return response
+    while timer < 60:
+        resource = current_user.make_authorized_request(third_party_service, resource_url)
+        resource = resource.json()
+        for key in path_for_attribute_to_display:
+            key = autoconvert(key)
+            if key in resource:
+                resource = resource[key]
+        # If resource is still a dict, we didn't find what we were looking for.
+        if type(resource) != dict:
+            our_response["attribute_exists"] = True
+            our_response["attribute_to_display"] = resource
+            our_response["timeout"] = False
+            return json.dumps(our_response)
+        time.sleep(2)
+        timer = timer + 2
+    return json.dumps(our_response)
 
-@app.route('/get_remembered_thing', methods=['POST'])
-def get_remembered_thing():
-    # Grabs the remembered thing.
-    # Bug: If the user signs in from a different browser, we won't be able to remember thing.
-    response = {
-        "new_data" : False,
+@app.route('/check_attribute_for_value', methods=['POST'])
+def check_attribute_for_value():
+    # Check attribute for value
+    # If it matches, return other attribute
+    our_response = {
+        "attribute_value_matches" : False,
+        "attribute_to_display" : False,
         "timeout" : True
     }
+
     # Require Authorization header for this endpoint
     if 'Authorization' in request.headers:
         htc_access = request.headers['Authorization']
     else:
         response['error'] = 'Authorization required'
-        return make_response(json.dumps(response), 403)
-    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
-    service_name = request.form['lessonService'].lower()
-    trigger_endpoint = request.form['triggerEndpoint']
-    trigger_check_endpoint = request.form['triggerCheck']
-    trigger_value_endpoint = request.form['triggerValue']
-    things_to_remember = Thing_to_remember.query.filter_by(access_token=htc_access).all()
-    thing_to_remember = things_to_remember.pop() # Get just the last thing
-    trigger_endpoint = trigger_endpoint.replace('replace_me',str(thing_to_remember))
+        return make_response(response, 403)
+
+    current_user = Bf_user.query.filter_by(access_token=htc_access).first()
+
+    third_party_service = request.form['thirdPartyService']
+    resource_url = request.form['currentStep[triggerEndpoint]']
+    if 'rememberedAttribute' in request.form:
+        remembered_attribute = request.form['rememberedAttribute']
+    try:
+        resource_url = resource_url.replace('replace_me',remembered_attribute)
+    except:
+        pass
+    trigger_checks = request.form['currentStep[triggerCheck]'].split(',')
+    trigger_value = request.form['currentStep[triggerValue]']
+    path_for_attribute_to_display = request.form['currentStep[thingToRemember]'].split(',')
 
     timer = 0
-    while timer < 5:
-        r = cur_user.make_authd_req(service_name, trigger_endpoint)
-        rjson = r.json()
-        if trigger_check_endpoint in rjson:
-            # if trigger_value_endpoint in rjson:
-            response["new_data"] = rjson[trigger_check_endpoint]
-            response['timeout'] = False
-            response = make_response(json.dumps(response), 200)
-            response.headers['content-type'] = 'application/json'
-            return response
-        timer = timer + 1
-        time.sleep(1)
-    response = make_response(response, 200)
-    response.headers['content-type'] = 'application/json'
-    return response
-
-@app.route('/get_added_data', methods=['POST'])
-def get_added_data():
-    # Checks to see if new data was added to triggerEndpoint.
-    # Once triggerCheck equals triggerValue
-    # then return thingToRemember column (need to make a new column with better name) 
-    response = {
-        "new_data" : False,
-        "timeout" : True
-    }
-    # Require Authorization header for this endpoint
-    if 'Authorization' in request.headers:
-        htc_access = request.headers['Authorization']
-    else:
-        response['error'] = 'Authorization required'
-        return make_response(json.dumps(response), 403)
-    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
-    service_name = request.form['lessonService'].lower()
-    trigger_endpoint = request.form['triggerEndpoint']
-    trigger_check_endpoints = request.form['triggerCheck'].split(',')
-    trigger_value = request.form['triggerValue']
-    trigger_value2_endpoints = request.form['thingToRemember'].split(',')
-    thing_to_remember = Thing_to_remember.query.filter_by(access_token=htc_access).first()
-    trigger_endpoint = trigger_endpoint.replace('replace_me',str(thing_to_remember))
-    timer = 0
-    while timer < 5:
-        r = cur_user.make_authd_req(service_name, trigger_endpoint)
-        rjson = r.json()
-        trigger_check = get_data_at_endpoint(rjson, trigger_check_endpoints)
-        trigger_value2 = get_data_at_endpoint(rjson, trigger_value2_endpoints)
+    while timer < 60:
+        resource = current_user.make_authorized_request(third_party_service, resource_url)
+        resource = resource.json()
+        trigger_check = get_data_at_endpoint(resource, trigger_checks)
         trigger_value = autoconvert(trigger_value)
         if trigger_check == trigger_value:
-            response["new_data"] = trigger_value2
-            response['timeout'] = False
-            response = make_response(json.dumps(response), 200)
-            response.headers['content-type'] = 'application/json'
-            return response
-        timer = timer + 1
-        time.sleep(1)
-    response = make_response(response, 200)
-    response.headers['content-type'] = 'application/json'
-    return response
+            our_response["attribute_value_matches"] = True
+            our_response["attribute_to_display"] = get_data_at_endpoint(resource,path_for_attribute_to_display)
+            our_response["timeout"] = False
+            return json.dumps(our_response)
+        time.sleep(2)
+        timer = timer + 2
+    return json.dumps(our_response)
+
+@app.route('/get_attributes', methods=['POST'])
+def get_attributes():
+    # Get the attributes from the resource_url
+    # If remembered_attributes exists, use that as the id
+    our_response = {
+        "attribute" : False,
+        "attribute_2" : False,
+        "attribute_3" : False
+    }
+
+    # Require Authorization header for this endpoint
+    if 'Authorization' in request.headers:
+        htc_access = request.headers['Authorization']
+    else:
+        response['error'] = 'Authorization required'
+        return make_response(response, 403)
+
+    current_user = Bf_user.query.filter_by(access_token=htc_access).first()
+
+    third_party_service = request.form['thirdPartyService']
+    resource_url = request.form['currentStep[triggerEndpoint]']
+    if 'rememberedAttribute' in request.form:
+        remembered_attribute = request.form['rememberedAttribute']
+    try:
+        resource_url = resource_url.replace('replace_me',remembered_attribute)
+    except:
+        pass
+    path_for_attribute = request.form['currentStep[triggerCheck]'].split(',')
+    path_for_attribute_2 = request.form['currentStep[triggerValue]'].split(',')
+    path_for_attribute_3 = request.form['currentStep[thingToRemember]'].split(',')
+
+    resource = current_user.make_authorized_request(third_party_service, resource_url)
+    resource = resource.json()
+    try:
+        our_response["attribute"] = get_data_at_endpoint(resource, path_for_attribute)
+    except KeyError:
+        pass
+    try:
+        our_response["attribute_2"] = get_data_at_endpoint(resource, path_for_attribute_2)
+    except KeyError:
+        pass
+    try:
+        our_response["attribute_3"] = get_data_at_endpoint(resource, path_for_attribute_3)
+    except KeyError:
+        pass
+    return json.dumps(our_response)
+
 
 @app.route('/signup', methods=['POST'])
 def htc_signup():
     user_email = request.form['email']
     user_pw = request.form['password']
     user_name = request.form['name']
-    cur_user = Bf_user(user_email, user_pw, user_name)
+    current_user = Bf_user(user_email, user_pw, user_name)
     response = {}
 
     if (Bf_user.query.filter_by(email=user_email).first()):
@@ -492,13 +537,13 @@ def htc_signup():
         response.headers['content-type'] = 'application/json'
         return response
     else:        
-        db.session.add(cur_user)
+        db.session.add(current_user)
         db.session.commit()
 
-    response['access_token'] = cur_user.access_token 
+    response['access_token'] = current_user.access_token 
     response['token_type'] = 'bearer'
-    response['email'] = cur_user.email
-    response['name'] = cur_user.name
+    response['email'] = current_user.email
+    response['name'] = current_user.name
     response['status'] = 200
     # Return a proper response with correct headers
     response = make_response(json.dumps(response), 200)
@@ -509,14 +554,14 @@ def htc_signup():
 def htc_signin():
     user_email = request.form['email']
     user_password = request.form['password']
-    cur_user = Bf_user.query.filter_by(email=user_email).first()
+    current_user = Bf_user.query.filter_by(email=user_email).first()
     response = {}
-    if cur_user and cur_user.check_pw(user_password):
+    if current_user and current_user.check_pw(user_password):
         # User is valid, return credentials
-        response['access_token'] = cur_user.access_token
+        response['access_token'] = current_user.access_token
         response['token_type'] = "bearer"
-        response['email'] = cur_user.email
-        response['name'] = cur_user.name
+        response['email'] = current_user.email
+        response['name'] = current_user.name
         response['status'] = 200
     else:
         response['status'] = 403
@@ -539,20 +584,20 @@ def create_connection():
     else:
         response['error'] = 'Authorization required'
         return make_response(response, 403)
-    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
-    if not cur_user:
+    current_user = Bf_user.query.filter_by(access_token=htc_access).first()
+    if not current_user:
         response['error'] = 'User not found'
         return make_response(json.dumps(response), 404)
     # Update exisitng connection with new oauth token
     connectionUpdatedFlag = False
-    for connection in cur_user.connections:
+    for connection in current_user.connections:
         if connection.service == service_name:
             connectionUpdatedFlag = True
             connection.access_token = oauth_token
     # Make a new connection if there isnt one
     if not connectionUpdatedFlag:
         new_connection = Connection(service_name, oauth_token)
-        cur_user.connections.append(new_connection)
+        current_user.connections.append(new_connection)
     db.session.commit()
     response['connection_saved'] = True
     response = make_response(json.dumps(response), 200)
@@ -561,7 +606,6 @@ def create_connection():
 
 @app.route('/record_step', methods=['POST'])
 def record_step():
-    # import pdb; pdb.set_trace()
     response = {}
     lesson_id = request.form['lessonId']
     step_id = request.form['id']
@@ -571,11 +615,11 @@ def record_step():
     else:
         response['error'] = 'Authorization required'
         return make_response(json.dumps(response), 403)
-    cur_user = Bf_user.query.filter_by(access_token=htc_access).first()
+    current_user = Bf_user.query.filter_by(access_token=htc_access).first()
     cur_less = Lesson.query.filter_by(id=lesson_id).first()
     user_less = UserLesson(start_dt=datetime.now())
     # Already started the lesson, just alter recent step
-    for lesson in cur_user.lessons:
+    for lesson in current_user.lessons:
         if lesson.lesson_id == cur_less.id:
             if step_id > lesson.recent_step:
                 lesson.recent_step = step_id
@@ -588,10 +632,10 @@ def record_step():
             response.headers['content-type'] = 'application/json'
             return response
     # New to the lesson, append it to user lesson association
-    if cur_user and cur_less:
+    if current_user and cur_less:
         cur_less.recent_step = step_id
         user_less.lesson = cur_less
-        cur_user.lessons.append(user_less)
+        current_user.lessons.append(user_less)
         db.session.commit()
         response['status'] = 200
     else:
@@ -601,4 +645,3 @@ def record_step():
     response = make_response(json.dumps(response), response['status'])
     response.headers['content-type'] = 'application/json'
     return response
-
