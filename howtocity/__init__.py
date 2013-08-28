@@ -308,7 +308,7 @@ def check_for_new():
     original_count = 10000000
     original_count_flag = False
     timer = 0
-    while timer < 5:
+    while timer < 60:
         timer = timer + 1
         r = cur_user.make_authd_req(service_name, trigger_endpoint)
         rjson = r.json()
