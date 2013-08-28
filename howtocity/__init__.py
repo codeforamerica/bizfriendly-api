@@ -16,8 +16,8 @@ app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
-    DEBUG = True,
-    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    # DEBUG = True,
+    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
     # SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
     # SECRET_KEY = '123456'
 )
@@ -240,12 +240,14 @@ def get_data_at_endpoint(json_data, endpoints):
     data = json_data # Should be a string or int now, not json
     return data
 
+
 def boolify(s):
     if s == 'True' or s == 'true':
         return True
     if s == 'False' or s == 'false':
         return False
     raise ValueError("huh?")
+
 
 def autoconvert(s):
     for fn in (boolify, int, float):
@@ -254,36 +256,6 @@ def autoconvert(s):
         except ValueError:
             pass
     return s
-
-@app.route('/logged_in', methods=['POST'])
-def logged_in():
-    # Check if the user is has a third_party_service access token.
-    response = {
-        "logged_in" : False,
-        "timeout" : True
-    }
-    # Require Authorization header for this endpoint
-    if 'Authorization' in request.headers:
-        htc_access = request.headers['Authorization']
-    else:
-        response['error'] = 'Authorization required'
-        return make_response(response, 403)
-    # Check database for connection between this user and this service
-    service_name = request.form['lessonService'].lower()
-    current_user = Bf_user.query.filter_by(access_token=htc_access).first()
-    if not current_user:
-        response['status'] = 404
-        response['error'] = 'No user found.'
-    else:
-        for connection in current_user.connections:
-            if connection.service == service_name:
-                response['status'] = 200
-                response['logged_in'] = True
-                response['timeout'] = False
-    # Build proper Response to return
-    response = make_response(json.dumps(response), response['status'])
-    response.headers['content-type'] = 'application/json'
-    return response
 
 
 @app.route('/check_for_new', methods=['POST'])
@@ -300,8 +272,6 @@ def check_for_new():
         "original_count" : False,
         "timeout" : True
     }
-
-    
 
     # Require Authorization header for this endpoint
     if 'Authorization' in request.headers:
@@ -379,6 +349,7 @@ def check_for_new():
         our_response["attribute_to_remember"] = get_data_at_endpoint(the_new_object, path_for_attribute_to_remember)
     return make_response(json.dumps(our_response), 200)
 
+
 @app.route('/check_if_attribute_exists', methods=['POST'])
 def check_if_attribute_exists():
     # Check if attribute exists
@@ -428,6 +399,7 @@ def check_if_attribute_exists():
         timer = timer + 2
     return json.dumps(our_response)
 
+
 @app.route('/check_attribute_for_value', methods=['POST'])
 def check_attribute_for_value():
     # Check attribute for value
@@ -473,6 +445,7 @@ def check_attribute_for_value():
         time.sleep(2)
         timer = timer + 2
     return json.dumps(our_response)
+
 
 @app.route('/get_attributes', methods=['POST'])
 def get_attributes():
@@ -550,6 +523,7 @@ def htc_signup():
     response.headers['content-type'] = 'application/json'
     return response
 
+
 @app.route('/signin', methods=['POST'])
 def htc_signin():
     user_email = request.form['email']
@@ -569,6 +543,7 @@ def htc_signin():
     response = make_response(json.dumps(response), 200)
     response.headers['content-type'] = 'application/json'
     return response
+
 
 @app.route('/create_connection', methods=['POST'])
 def create_connection():    
@@ -603,6 +578,7 @@ def create_connection():
     response = make_response(json.dumps(response), 200)
     response.headers['content-type'] = 'application/json'
     return response
+
 
 @app.route('/record_step', methods=['POST'])
 def record_step():
