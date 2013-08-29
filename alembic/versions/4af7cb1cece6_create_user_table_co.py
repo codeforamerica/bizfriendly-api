@@ -1,7 +1,7 @@
 """Create user table, connection table, user_to_lesson table
 
 Revision ID: 4af7cb1cece6
-Revises: 52b9c8f82d15
+Revises: 4ae74c4b3ca0
 Create Date: 2013-08-02 14:04:36.383942
 
 """

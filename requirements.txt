@@ -1,10 +1,8 @@
 Flask==0.9
 Flask-Admin==1.0.6
-Flask-Login==0.2.5
 Flask-OAuth==0.12
 Flask-Restless==0.10.1
 Flask-SQLAlchemy==0.16
-Flask-WTF==0.8.3
 Jinja2==2.6
 Mako==0.8.1
 MarkupSafe==0.18

@@ -7,7 +7,6 @@ from flask.ext.heroku import Heroku
 import hashlib
 from datetime import datetime
 import os, requests, json, time
-from requests import get as http_get
 #----------------------------------------
 # initialization
 #----------------------------------------
@@ -16,8 +15,8 @@ app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
-    # DEBUG = True,
-    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    DEBUG = True,
+    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
     # SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
     # SECRET_KEY = '123456'
 )
@@ -146,7 +145,7 @@ class Bf_user(db.Model):
     def make_authorized_request(self, service, req_url):
         for connection in self.connections:
             if connection.service == service:
-                return http_get(req_url + connection.access_token, headers={'User-Agent': 'Python'})
+                return requests.get(req_url + connection.access_token, headers={'User-Agent': 'Python'})
 
 class UserLesson(db.Model):
     __tablename__ = 'user_to_lesson'
@@ -180,19 +179,6 @@ class Connection(db.Model):
     def __repr__(self):
         return "Connection user_id: %s, service: %s" % (self.user_id, self.service)
 
-
-class Thing_to_remember(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    access_token = db.Column(db.Unicode)
-    thing_to_remember = db.Column(db.Unicode)
-
-    def __init__(self, access_token=None, thing_to_remember=None):
-        self.access_token = access_token
-        self.thing_to_remember = thing_to_remember
-
-    def __repr__(self):
-        return self.thing_to_remember
-
 # API ------------------------------------------------------------
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
 manager.create_api(Category, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='categories')
@@ -202,7 +188,7 @@ manager.create_api(Step, methods=['GET', 'POST', 'DELETE'], url_prefix=api_versi
 # manager.create_api(UserLesson, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='userlessons')
 
 # ADMIN ------------------------------------------------------------
-admin = Admin(app, name='How to City', url='/api/admin')
+admin = Admin(app, name='BizFriend.ly Admin', url='/api/admin')
 
 class CategoryView(ModelView):
     column_display_pk = True
@@ -546,7 +532,7 @@ def htc_signin():
 
 
 @app.route('/create_connection', methods=['POST'])
-def create_connection():    
+def create_connection():
     response = {
         "connection_saved" : False
     }
