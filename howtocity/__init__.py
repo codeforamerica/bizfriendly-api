@@ -270,15 +270,15 @@ def check_for_new():
     
     third_party_service = request.form['thirdPartyService']
     
-    if app.config['DEBUG']:
-        if third_party_service == 'facebook':
-            our_response = {
-                "attribute_to_display" : "TEST PAGE",
-                "attribute_to_remember" : 297429370396923,
-                "new_object_added" : True,
-                "original_count" : 10000000,
-                "timeout" : False
-            }
+    # if app.config['DEBUG']:
+    #     if third_party_service == 'facebook':
+    #         our_response = {
+    #             "attribute_to_display" : "TEST PAGE",
+    #             "attribute_to_remember" : 297429370396923,
+    #             "new_object_added" : True,
+    #             "original_count" : 10000000,
+    #             "timeout" : False
+    #         }
 
     resource_url = request.form['currentStep[triggerEndpoint]']
     if 'rememberedAttribute' in request.form:
@@ -298,7 +298,12 @@ def check_for_new():
         resource = resource.json()
         for key in path_for_objects:
             key = autoconvert(key)
-            resource = resource[key]
+            try:
+                resource = resource[key]
+            except IndexError:
+                # Foursquare, its an empty list when its new.
+                original_count = 0
+                break
         original_count = len(resource)
         our_response["original_count"] = original_count
         our_response["timeout"] = False
