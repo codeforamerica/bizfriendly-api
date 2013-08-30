@@ -491,7 +491,7 @@ def htc_signup():
 
     if (Bf_user.query.filter_by(email=user_email).first()):
         response['error'] = 'Email already in use.'
-        response['status'] = 400
+        response['status'] = 403
         response = make_response(json.dumps(response), 403)
         response.headers['content-type'] = 'application/json'
         return response
