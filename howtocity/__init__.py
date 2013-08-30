@@ -491,8 +491,8 @@ def htc_signup():
 
     if (Bf_user.query.filter_by(email=user_email).first()):
         response['error'] = 'Email already in use.'
-        response['status'] = 403
-        response = make_response(json.dumps(response), 403)
+        response['status'] = 400
+        response = make_response(json.dumps(response), 400)
         response.headers['content-type'] = 'application/json'
         return response
     else:        
@@ -524,9 +524,9 @@ def htc_signin():
         response['name'] = current_user.name
         response['status'] = 200
     else:
-        response['status'] = 403
+        response['status'] = 400
         response['error'] = "Invalid login credentials."
-    response = make_response(json.dumps(response), 200)
+    response = make_response(json.dumps(response), 400)
     response.headers['content-type'] = 'application/json'
     return response
 
@@ -544,7 +544,7 @@ def create_connection():
         htc_access = request.headers['Authorization']
     else:
         response['error'] = 'Authorization required'
-        return make_response(response, 403)
+        return make_response(response, 401)
     current_user = Bf_user.query.filter_by(access_token=htc_access).first()
     if not current_user:
         response['error'] = 'User not found'
@@ -576,7 +576,7 @@ def record_step():
         htc_access = request.headers['Authorization']
     else:
         response['error'] = 'Authorization required'
-        return make_response(json.dumps(response), 403)
+        return make_response(json.dumps(response), 401)
     current_user = Bf_user.query.filter_by(access_token=htc_access).first()
     cur_less = Lesson.query.filter_by(id=lesson_id).first()
     user_less = UserLesson(start_dt=datetime.now())
