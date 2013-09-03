@@ -302,7 +302,6 @@ def check_for_new():
                 resource = resource[key]
             except IndexError:
                 # Foursquare, its an empty list when its new.
-                original_count = 0
                 break
         original_count = len(resource)
         our_response["original_count"] = original_count
