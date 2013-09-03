@@ -1,22 +1,22 @@
-[![Build Status](https://travis-ci.org/codeforamerica/howtocity-api.png)](https://travis-ci.org/codeforamerica/howtocity-api)
+[![Build Status](https://travis-ci.org/codeforamerica/bizfriendly-api.png)](https://travis-ci.org/codeforamerica/bizfriendly-api)
 
-How to City API
+BizFriendly API
 =========
 
-How to City teaches you how to use the internet to increase your quality of life, be more effecient at work, and perhaps even how to be a better citizen.
+BizFriendly teaches you how to use the internet to increase your quality of life, be more effecient at work, and perhaps even how to be a better citizen.
 
 ## <a name="about"></a>About
-This is the API that powers the various How to City applications.
+This is the API that powers the various BizFriendly applications.
 
 ## <a name="demo"></a>Demo
 Some example API calls:
-	`http://howtocity.herokuapp.com/api/v1/categories`
-	`http://howtocity.herokuapp.com/api/v1/lessons`
-	`http://howtocity.herokuapp.com/api/v1/steps`
+	`http://app.bizfriend.ly/api/v1/categories`
+	`http://app.bizfriend.ly/api/v1/lessons`
+	`http://app.bizfriend.ly/api/v1/steps`
 
 ## <a name="development-setup"></a>Development Setup
 
-How to City is written in Python, and runs as a standalone [Flask application](http://flask.pocoo.org/).
+BizFriendly is written in Python, and runs as a standalone [Flask application](http://flask.pocoo.org/).
 
 1. For local development, uncomment the settings in setup.sh and set the correct values for your environment. 
 
@@ -29,7 +29,7 @@ How to City is written in Python, and runs as a standalone [Flask application](h
 4. Add content through the [Admin panel](http://127.0.0.1:5000/api/admin/categoryview/).
 
 For continuous staging deployment:
-set the Travis CI github hook for codeforamerica/howtocity-api on
+set the Travis CI github hook for codeforamerica/bizfriendly-api on
 
 ## <a name="contributing"></a>Contributing
 In the spirit of [free software][free-sw], **everyone** is encouraged to help
@@ -52,7 +52,7 @@ Here are some ways *you* can contribute:
 * by reviewing patches
 * [financially][]
 
-[issues]: https://github.com/codeforamerica/howtocity/issues
+[issues]: https://github.com/codeforamerica/bizfriendly-api/issues
 [financially]: https://secure.codeforamerica.org/page/contribute
 
 ## <a name="issues"></a>Submitting an Issue
@@ -75,6 +75,6 @@ bug.
 ## <a name="copyright"></a>Copyright
 Copyright (c) 2013 Code for America. See [LICENSE][] for details.
 
-[license]: https://github.com/codeforamerica/howtocity
+[license]: https://github.com/codeforamerica/bizfriendly-api
 
-[![Code for America Tracker](http://stats.codeforamerica.org/codeforamerica/howtocity.png)](http://stats.codeforamerica.org/projects/howtocity)
+[![Code for America Tracker](http://stats.codeforamerica.org/codeforamerica/bizfriendly-api.png)](http://stats.codeforamerica.org/projects/bizfriendly-api)

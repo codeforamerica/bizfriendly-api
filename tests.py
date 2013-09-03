@@ -1,7 +1,7 @@
 import unittest, requests
 import os
 
-class howtocity_api_tester(unittest.TestCase):
+class bf_api_tester(unittest.TestCase):
 	
 	def setUp(self):
 		self.api_url = os.environ['API_URL']
