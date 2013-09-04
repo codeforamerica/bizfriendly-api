@@ -242,6 +242,12 @@ def autoconvert(s):
             return fn(s)
         except ValueError:
             pass
+        if type(s) == unicode:
+            if ',' in s:
+                try:
+                    return s.split(',')
+                except AttributeError:
+                    pass
     return s
 
 
@@ -276,6 +282,14 @@ def check_for_new():
     #         our_response = {
     #             "attribute_to_display" : "TEST PAGE",
     #             "attribute_to_remember" : 297429370396923,
+    #             "new_object_added" : True,
+    #             "original_count" : 10000000,
+    #             "timeout" : False
+    #         }
+    #     if third_party_service == 'trello':
+    #         our_response = {
+    #             "attribute_to_display" : "BizFriendly Test Board",
+    #             "attribute_to_remember" : "52279d81c2fc68175a000609",
     #             "new_object_added" : True,
     #             "original_count" : 10000000,
     #             "timeout" : False
@@ -444,6 +458,73 @@ def check_attribute_for_value():
         time.sleep(2)
         timer = timer + 2
     return json.dumps(our_response)
+
+@app.route("/check_attribute_for_update", methods=['POST'])
+def check_attribute_for_update():
+    # import pdb; pdb.set_trace()
+    # Check once for original_value of attribute
+    # then check if attribute value has changed
+    # Return that endpoint
+
+    # Require Authorization header for this endpoint
+    if 'Authorization' in request.headers:
+        htc_access = request.headers['Authorization']
+    else:
+        response['error'] = 'Authorization required'
+        return make_response(response, 403)
+
+    our_response = {
+        "original_attribute_value" : False,
+        "attribute_value_updated" : False,
+        "attribute_to_display" : False,
+        "timeout" : True
+    }
+
+    current_user = Bf_user.query.filter_by(access_token=htc_access).first()
+
+    third_party_service = request.form['thirdPartyService']
+    resource_url = request.form['currentStep[triggerEndpoint]']
+    if 'rememberedAttribute' in request.form:
+        remembered_attribute = request.form['rememberedAttribute']
+    try:
+        resource_url = resource_url.replace('replace_me',remembered_attribute)
+    except:
+        pass
+    path_for_attribute_to_check = request.form['currentStep[triggerCheck]'].split(',')
+    trigger_value = request.form['currentStep[triggerValue]']
+    path_for_attribute_to_display = request.form['currentStep[thingToRemember]'].split(',')
+    original_attribute_values = autoconvert(request.form['originalAttributeValues'])
+    
+    if not original_attribute_values:
+        original_attribute_values = []
+        response = current_user.make_authorized_request(third_party_service, resource_url)
+        resources = response.json()
+        for resource in resources:
+            resource = get_data_at_endpoint(resource, path_for_attribute_to_check)
+            original_attribute_values.append(resource)
+        our_response["original_attribute_values"] = original_attribute_values
+        our_response["timeout"] = False
+        return json.dumps(our_response)
+
+    timer = 0
+    while timer < 60:
+        resource = current_user.make_authorized_request(third_party_service, resource_url)
+        resources = resource.json()
+        current_attribute_values = set()
+        for resource in resources:
+            current_attribute_values.add(get_data_at_endpoint(resource, path_for_attribute_to_check))
+        updated_value = current_attribute_values.difference(set(original_attribute_values))   
+        if len(updated_value):
+            updated_value = updated_value.pop()
+            our_response["attribute_value_updated"] = True
+            our_response["attribute_to_display"] = updated_value
+            our_response["timeout"] = False
+            return json.dumps(our_response)
+        
+        time.sleep(2)
+        timer = timer + 2
+    return json.dumps(our_response)
+
 
 
 @app.route('/get_attributes', methods=['POST'])
