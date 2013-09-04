@@ -6,6 +6,7 @@ from flask.ext.admin import Admin
 from flask.ext.heroku import Heroku
 import hashlib
 from datetime import datetime
+from dateutil import parser
 import os, requests, json, time
 #----------------------------------------
 # initialization
@@ -15,10 +16,10 @@ app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
-    # DEBUG = True,
-    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    DEBUG = True,
+    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
     # SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
-    # SECRET_KEY = '123456'
+    SECRET_KEY = '123456'
 )
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
@@ -287,7 +288,10 @@ def check_for_new():
         resource_url = resource_url.replace('replace_me',remembered_attribute)
     except:
         pass
-    path_for_objects = request.form['currentStep[triggerCheck]'].split(',')
+    # Check if a triggerCheck has been set.
+    path_for_objects = False
+    if request.form['currentStep[triggerCheck]']:
+        path_for_objects = request.form['currentStep[triggerCheck]'].split(',')
     path_for_attribute_to_display = request.form['currentStep[triggerValue]'].split(',')
     path_for_attribute_to_remember = request.form['currentStep[thingToRemember]'].split(',')
     original_count = autoconvert(request.form['originalCount'])
@@ -296,13 +300,11 @@ def check_for_new():
         # r = current_user.make_authorized_request(service_name, trigger_endpoint)
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
-        for key in path_for_objects:
-            key = autoconvert(key)
-            try:
-                resource = resource[key]
-            except IndexError:
-                # Foursquare, its an empty list when its new.
-                break
+        if path_for_objects:
+            for key in path_for_objects:
+                key = autoconvert(key)
+                if key in resource:
+                    resource = resource[key]
         original_count = len(resource)
         our_response["original_count"] = original_count
         our_response["timeout"] = False
@@ -313,9 +315,10 @@ def check_for_new():
     while timer < 60:
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
-        for key in path_for_objects:
-            key = autoconvert(key)
-            resource = resource[key] 
+        if path_for_objects:
+            for key in path_for_objects:
+                key = autoconvert(key)
+                resource = resource[key] 
         if len(resource) > original_count:
             our_response["new_object_added"] = True
             break
@@ -325,18 +328,39 @@ def check_for_new():
         return make_response(json.dumps(our_response), 200) # timeout
     else:
         our_response["timeout"] = False
+    # Facebook pages are added to the end of the list.
     if third_party_service == 'facebook':
-        the_new_object = resource.pop()
-    # Foursquare has new tips as the first in the list
+        the_new_resource = resource.pop()
+    # Foursquare has new tips as the first in the list.
     if third_party_service == 'foursquare':
-        the_new_object = resource.pop(0)
+        the_new_resource = resource.pop(0)
+    # Need to check timestamps of trello boards to find new.
+    if third_party_service == 'trello':
+        boards = []
+        # The current reource will be a list of resources.
+        resources = resource
+        for resource in resources:
+            board = {
+                "id" : resource["id"],
+                "datetime" : parser.parse(resource["dateLastView"])
+            }
+            boards.append(board)
+        # Get the newest board
+        newest_datetime = max([board["datetime"] for board in boards])
+        for board in boards:
+            if board["datetime"] == newest_datetime:
+                for resource in resources:
+                    if resource["id"] == board["id"]:
+                        the_new_resource = resource
+                        break
+                break
 
     # Return an attribute to display if its not blank.
     if path_for_attribute_to_display[0]:
-        our_response["attribute_to_display"] = get_data_at_endpoint(the_new_object, path_for_attribute_to_display)
-    # Remember an attribute of the new object if its not blank.
+        our_response["attribute_to_display"] = get_data_at_endpoint(the_new_resource, path_for_attribute_to_display)
+    # Remember an attribute of the new resource if its not blank.
     if path_for_attribute_to_remember[0]:
-        our_response["attribute_to_remember"] = get_data_at_endpoint(the_new_object, path_for_attribute_to_remember)
+        our_response["attribute_to_remember"] = get_data_at_endpoint(the_new_resource, path_for_attribute_to_remember)
     return make_response(json.dumps(our_response), 200)
 
 
