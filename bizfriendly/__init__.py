@@ -335,25 +335,10 @@ def check_for_new():
     if third_party_service == 'foursquare':
         the_new_resource = resource.pop(0)
     # Need to check timestamps of trello boards to find new.
+    # Sort so newest is first in the list.
     if third_party_service == 'trello':
-        boards = []
-        # The current reource will be a list of resources.
-        resources = resource
-        for resource in resources:
-            board = {
-                "id" : resource["id"],
-                "datetime" : parser.parse(resource["dateLastView"])
-            }
-            boards.append(board)
-        # Get the newest board
-        newest_datetime = max([board["datetime"] for board in boards])
-        for board in boards:
-            if board["datetime"] == newest_datetime:
-                for resource in resources:
-                    if resource["id"] == board["id"]:
-                        the_new_resource = resource
-                        break
-                break
+        resource.sort(key=lambda board : board["dateLastView"], reverse=True)
+        the_new_resource = resource.pop(0)
 
     # Return an attribute to display if its not blank.
     if path_for_attribute_to_display[0]:
