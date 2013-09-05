@@ -15,10 +15,10 @@ app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
-    # DEBUG = True,
-    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    DEBUG = True,
+    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
     # SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
-    # SECRET_KEY = '123456'
+    SECRET_KEY = '123456'
 )
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
@@ -157,6 +157,7 @@ class UserLesson(db.Model):
     start_dt = db.Column(db.DateTime)
     end_dt = db.Column(db.DateTime, nullable=True)
     lesson = db.relationship('Lesson')
+    user = db.relationship('Bf_user')
 
     def __init__(self, start_dt=None, end_dt=None, recent_step=None):
         self.start_dt = start_dt 
@@ -185,7 +186,8 @@ manager.create_api(Category, methods=['GET', 'POST', 'DELETE'], url_prefix=api_v
 manager.create_api(Lesson, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='lessons')
 manager.create_api(Step, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='steps')
 # manager.create_api(Bf_user, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='users')
-# manager.create_api(UserLesson, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='userlessons')
+includes = ['lesson','lesson.name','lesson.id','user','user.name','end_dt']
+manager.create_api(UserLesson, include_columns=includes, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='userlessons')
 
 # ADMIN ------------------------------------------------------------
 admin = Admin(app, name='BizFriend.ly Admin', url='/api/admin')
@@ -570,12 +572,11 @@ def create_connection():
     response.headers['content-type'] = 'application/json'
     return response
 
-
 @app.route('/record_step', methods=['POST'])
 def record_step():
     response = {}
     lesson_id = request.form['lessonId']
-    step_id = request.form['id']
+    step_id = request.form['currentStep[id]']
     # Require Authorization header for this endpoint
     if 'Authorization' in request.headers:
         htc_access = request.headers['Authorization']
