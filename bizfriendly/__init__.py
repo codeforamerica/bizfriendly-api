@@ -15,7 +15,7 @@ app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
-    DEBUG = True,
+    # DEBUG = True,
     # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
     # SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
     # SECRET_KEY = '123456'
@@ -497,8 +497,7 @@ def htc_signup():
 
     if (Bf_user.query.filter_by(email=user_email).first()):
         response['error'] = 'Email already in use.'
-        response['status'] = 400
-        response = make_response(json.dumps(response), 400)
+        response = make_response(json.dumps(response), 401)
         response.headers['content-type'] = 'application/json'
         return response
     else:        
@@ -509,7 +508,6 @@ def htc_signup():
     response['token_type'] = 'bearer'
     response['email'] = current_user.email
     response['name'] = current_user.name
-    response['status'] = 200
     # Return a proper response with correct headers
     response = make_response(json.dumps(response), 200)
     response.headers['content-type'] = 'application/json'
@@ -531,9 +529,8 @@ def htc_signin():
         response['status'] = 200
         response = make_response(json.dumps(response),200)
     else:
-        response['status'] = 400
         response['error'] = "Invalid login credentials."
-        response = make_response(json.dumps(response),400)
+        response = make_response(json.dumps(response),401)
     response.headers['content-type'] = 'application/json'
     return response
 
