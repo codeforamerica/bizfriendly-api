@@ -6,7 +6,7 @@ from flask.ext.admin import Admin
 from flask.ext.heroku import Heroku
 import hashlib
 from datetime import datetime
-import os, requests, json, time
+import os, requests, json, time, re
 #----------------------------------------
 # initialization
 #----------------------------------------
@@ -492,11 +492,18 @@ def htc_signup():
     user_email = request.form['email']
     user_pw = request.form['password']
     user_name = request.form['name']
-    current_user = Bf_user(user_email, user_pw, user_name)
     response = {}
 
+    # Validate emails
+    if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", user_email):
+        response['error'] = 'That email doesn\'t look right.'
+        response = make_response(json.dumps(response), 401)
+        response.headers['content-type'] = 'application/json'
+        return response
+
+    current_user = Bf_user(user_email, user_pw, user_name)
     if (Bf_user.query.filter_by(email=user_email).first()):
-        response['error'] = 'Email already in use.'
+        response['error'] = 'Someone has already signed up with that email.'
         response = make_response(json.dumps(response), 401)
         response.headers['content-type'] = 'application/json'
         return response
@@ -518,6 +525,14 @@ def htc_signup():
 def htc_signin():
     user_email = request.form['email']
     user_password = request.form['password']
+
+    # Validate emails
+    if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", user_email):
+        response['error'] = 'Invalid Email'
+        response = make_response(json.dumps(response), 401)
+        response.headers['content-type'] = 'application/json'
+        return response
+
     current_user = Bf_user.query.filter_by(email=user_email).first()
     response = {}
     if current_user and current_user.check_pw(user_password):
@@ -529,7 +544,7 @@ def htc_signin():
         response['status'] = 200
         response = make_response(json.dumps(response),200)
     else:
-        response['error'] = "Invalid login credentials."
+        response['error'] = "Couldn't find your email and password."
         response = make_response(json.dumps(response),401)
     response.headers['content-type'] = 'application/json'
     return response
