@@ -528,7 +528,7 @@ def htc_signin():
 
     # Validate emails
     if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", user_email):
-        response['error'] = 'Invalid Email'
+        response['error'] = 'That email doesn\'t look right.'
         response = make_response(json.dumps(response), 401)
         response.headers['content-type'] = 'application/json'
         return response
