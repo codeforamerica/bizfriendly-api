@@ -277,23 +277,25 @@ def check_for_new():
     
     third_party_service = request.form['thirdPartyService']
     
-    # if app.config['DEBUG']:
-    #     if third_party_service == 'facebook':
-    #         our_response = {
-    #             "attribute_to_display" : "TEST PAGE",
-    #             "attribute_to_remember" : 297429370396923,
-    #             "new_object_added" : True,
-    #             "original_count" : 10000000,
-    #             "timeout" : False
-    #         }
-    #     if third_party_service == 'trello':
-    #         our_response = {
-    #             "attribute_to_display" : "BizFriendly Test Board",
-    #             "attribute_to_remember" : "52279d81c2fc68175a000609",
-    #             "new_object_added" : True,
-    #             "original_count" : 10000000,
-    #             "timeout" : False
-    #         }
+    if app.config['DEBUG']:
+        if third_party_service == 'facebook':
+            our_response = {
+                "attribute_to_display" : "TEST PAGE",
+                "attribute_to_remember" : 297429370396923,
+                "new_object_added" : True,
+                "original_count" : 10000000,
+                "timeout" : False
+            }
+        if third_party_service == 'trello':
+            step_number = autoconvert(request.form['currentStep[stepNumber]'])
+            if step_number == 3:
+                our_response = {
+                    "attribute_to_display" : "BizFriendly Test Board",
+                    "attribute_to_remember" : "52279d81c2fc68175a000609",
+                    "new_object_added" : True,
+                    "original_count" : 10000000,
+                    "timeout" : False
+                }
 
     resource_url = request.form['currentStep[triggerEndpoint]']
     if 'rememberedAttribute' in request.form:
@@ -310,7 +312,8 @@ def check_for_new():
     path_for_attribute_to_remember = request.form['currentStep[thingToRemember]'].split(',')
     original_count = autoconvert(request.form['originalCount'])
     # If original_count is false in post data, then just return the count of objects at the endpoint.
-    if not original_count:
+    # original_count can be 0 so check not int instead of False
+    if type(original_count) != int:
         # r = current_user.make_authorized_request(service_name, trigger_endpoint)
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
@@ -348,11 +351,18 @@ def check_for_new():
     # Foursquare has new tips as the first in the list.
     if third_party_service == 'foursquare':
         the_new_resource = resource.pop(0)
-    # Need to check timestamps of trello boards to find new.
-    # Sort so newest is first in the list.
+    # Trello calls check_for_new twice
     if third_party_service == 'trello':
-        resource.sort(key=lambda board : board["dateLastView"], reverse=True)
-        the_new_resource = resource.pop(0)
+        step_number = autoconvert(request.form['currentStep[stepNumber]'])
+        if step_number == 3:
+            # Need to check timestamps of trello boards to find new.
+            # Sort so newest is first in the list.
+            resource.sort(key=lambda board : board["dateLastView"], reverse=True)
+            the_new_resource = resource.pop(0)
+        if step_number == 5:
+            # New cards are at the end of the list
+            the_new_resource = resource.pop()
+
 
     # Return an attribute to display if its not blank.
     if path_for_attribute_to_display[0]:
@@ -461,7 +471,6 @@ def check_attribute_for_value():
 
 @app.route("/check_attribute_for_update", methods=['POST'])
 def check_attribute_for_update():
-    # import pdb; pdb.set_trace()
     # Check once for original_value of attribute
     # then check if attribute value has changed
     # Return that endpoint
@@ -477,6 +486,7 @@ def check_attribute_for_update():
         "original_attribute_value" : False,
         "attribute_value_updated" : False,
         "attribute_to_display" : False,
+        # "attribute_to_remember" : False,
         "timeout" : True
     }
 
@@ -492,7 +502,9 @@ def check_attribute_for_update():
         pass
     path_for_attribute_to_check = request.form['currentStep[triggerCheck]'].split(',')
     trigger_value = request.form['currentStep[triggerValue]']
-    path_for_attribute_to_display = request.form['currentStep[thingToRemember]'].split(',')
+    # Dispaly same column we were checking
+    path_for_attribute_to_display = request.form['currentStep[triggerCheck]'].split(',')
+    # path_for_attribute_to_remember = request.form['currentStep[thingToRemember]'].split(',')
     original_attribute_values = autoconvert(request.form['originalAttributeValues'])
     
     if not original_attribute_values:
@@ -513,11 +525,15 @@ def check_attribute_for_update():
         current_attribute_values = set()
         for resource in resources:
             current_attribute_values.add(get_data_at_endpoint(resource, path_for_attribute_to_check))
-        updated_value = current_attribute_values.difference(set(original_attribute_values))   
+        updated_value = current_attribute_values.difference(set(original_attribute_values))  
+        # for resource in resources:
+        #     if updated_value == resource["name"]:
+        #         updated_value_id = resource["id"]
         if len(updated_value):
             updated_value = updated_value.pop()
             our_response["attribute_value_updated"] = True
             our_response["attribute_to_display"] = updated_value
+            # our_response["attribute_to_remember"] = updated_value_id
             our_response["timeout"] = False
             return json.dumps(our_response)
         
