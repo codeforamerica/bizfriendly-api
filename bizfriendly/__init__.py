@@ -408,10 +408,16 @@ def check_if_attribute_exists():
     while timer < 60:
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
+        if len(resource) == 0: # If empty list, it doesn't exist
+            return json.dumps(our_response)
         for key in path_for_attribute_to_display:
             key = autoconvert(key)
-            if key in resource:
+            if type(resource) == list and type(key) == int:
                 resource = resource[key]
+            elif key in resource:
+                resource = resource[key]
+            else: # key doesn't exist
+                return json.dumps(our_response)
         # If resource is still a dict, we didn't find what we were looking for.
         if type(resource) != dict:
             our_response["attribute_exists"] = True
@@ -501,7 +507,7 @@ def check_attribute_for_update():
     except:
         pass
     path_for_attribute_to_check = request.form['currentStep[triggerCheck]'].split(',')
-    trigger_value = request.form['currentStep[triggerValue]']
+    # trigger_value = request.form['currentStep[triggerValue]']
     # Dispaly same column we were checking
     path_for_attribute_to_display = request.form['currentStep[triggerCheck]'].split(',')
     # path_for_attribute_to_remember = request.form['currentStep[thingToRemember]'].split(',')
