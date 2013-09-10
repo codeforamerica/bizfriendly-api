@@ -15,10 +15,10 @@ app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
-    # DEBUG = True,
-    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    DEBUG = True,
+    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
     # SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
-    # SECRET_KEY = '123456'
+    SECRET_KEY = '123456'
 )
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
@@ -625,3 +625,75 @@ def record_step():
     response = make_response(json.dumps(response), response['status'])
     response.headers['content-type'] = 'application/json'
     return response
+
+
+@app.route('/third_party_services', methods=['GET','POST'])
+def third_party_services():
+    files = os.listdir('bizfriendly/static')
+    response = []
+    # third_party_service_resources = []
+    for filename in files:
+        json_data=open('bizfriendly/static/'+filename).read()
+        data = json.loads(json_data)
+        response.append(data)
+    return json.dumps(response)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
