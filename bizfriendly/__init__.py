@@ -331,6 +331,8 @@ def check_for_new():
     #  Check api_resource_url every two seconds for a new addition at path_of_resource_to_check
     timer = 0
     while timer < 60:
+        time.sleep(2)
+        timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
         if path_for_objects:
@@ -340,8 +342,6 @@ def check_for_new():
         if len(resource) > original_count:
             our_response["new_object_added"] = True
             break
-        time.sleep(2)
-        timer = timer + 2
     if not our_response["new_object_added"]:
         return make_response(json.dumps(our_response), 200) # timeout
     else:
@@ -407,6 +407,8 @@ def check_if_attribute_exists():
     # Check api_resource_url every two seconds for a value
     timer = 0
     while timer < 60:
+        time.sleep(2)
+        timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
         if len(resource) == 0: # If empty list, it doesn't exist
@@ -425,8 +427,6 @@ def check_if_attribute_exists():
             our_response["attribute_to_display"] = resource
             our_response["timeout"] = False
             return json.dumps(our_response)
-        time.sleep(2)
-        timer = timer + 2
     return json.dumps(our_response)
 
 
@@ -463,6 +463,8 @@ def check_attribute_for_value():
 
     timer = 0
     while timer < 60:
+        time.sleep(2)
+        timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
         trigger_check = get_data_at_endpoint(resource, trigger_checks)
@@ -472,8 +474,6 @@ def check_attribute_for_value():
             our_response["attribute_to_display"] = get_data_at_endpoint(resource,path_for_attribute_to_display)
             our_response["timeout"] = False
             return json.dumps(our_response)
-        time.sleep(2)
-        timer = timer + 2
     return json.dumps(our_response)
 
 @app.route("/check_attribute_for_update", methods=['POST'])
@@ -527,6 +527,8 @@ def check_attribute_for_update():
 
     timer = 0
     while timer < 60:
+        time.sleep(2)
+        timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resources = resource.json()
         current_attribute_values = set()
@@ -543,9 +545,6 @@ def check_attribute_for_update():
             # our_response["attribute_to_remember"] = updated_value_id
             our_response["timeout"] = False
             return json.dumps(our_response)
-        
-        time.sleep(2)
-        timer = timer + 2
     return json.dumps(our_response)
 
 
