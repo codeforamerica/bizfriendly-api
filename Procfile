@@ -1,1 +1,1 @@
-web: gunicorn bizfriendly:app
+web: newrelic-admin run-program gunicorn bizfriendly:app

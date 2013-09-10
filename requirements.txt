@@ -3,6 +3,7 @@ Flask-Admin==1.0.6
 Flask-OAuth==0.12
 Flask-Restless==0.10.1
 Flask-SQLAlchemy==0.16
+Flask-WTF==0.9.1
 Jinja2==2.6
 Mako==0.8.1
 MarkupSafe==0.18
@@ -14,6 +15,7 @@ distribute==0.6.34
 flask-heroku==0.1.4
 gunicorn==0.17.4
 httplib2==0.8
+newrelic==2.0.0.1
 oauth2==1.5.211
 poster==0.8.1
 psycopg2==2.5
