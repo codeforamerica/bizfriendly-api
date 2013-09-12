@@ -321,7 +321,7 @@ def check_for_new():
         if path_for_objects:
             for key in path_for_objects:
                 key = autoconvert(key)
-                if key in resource:
+                if resource:
                     resource = resource[key]
         original_count = len(resource)
         our_response["original_count"] = original_count
@@ -338,7 +338,8 @@ def check_for_new():
         if path_for_objects:
             for key in path_for_objects:
                 key = autoconvert(key)
-                resource = resource[key] 
+                if resource:
+                    resource = resource[key] 
         if len(resource) > original_count:
             our_response["new_object_added"] = True
             break
