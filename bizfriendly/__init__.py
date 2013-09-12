@@ -15,10 +15,10 @@ app = Flask(__name__)
 heroku = Heroku(app) # Sets CONFIG automagically
 
 app.config.update(
-    # DEBUG = True,
-    # SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
+    DEBUG = True,
+    SQLALCHEMY_DATABASE_URI = 'postgres://hackyourcity@localhost/howtocity',
     # SQLALCHEMY_DATABASE_URI = 'postgres://postgres:root@localhost/howtocity',
-    # SECRET_KEY = '123456'
+    SECRET_KEY = '123456'
 )
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
