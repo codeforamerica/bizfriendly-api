@@ -6,7 +6,7 @@ from flask.ext.admin import Admin
 from flask.ext.heroku import Heroku
 import hashlib
 from datetime import datetime
-import os, requests, json, time
+import os, requests, json, time, re
 #----------------------------------------
 # initialization
 #----------------------------------------
@@ -157,6 +157,7 @@ class UserLesson(db.Model):
     start_dt = db.Column(db.DateTime)
     end_dt = db.Column(db.DateTime, nullable=True)
     lesson = db.relationship('Lesson')
+    user = db.relationship('Bf_user')
 
     def __init__(self, start_dt=None, end_dt=None, recent_step=None):
         self.start_dt = start_dt 
@@ -185,7 +186,8 @@ manager.create_api(Category, methods=['GET', 'POST', 'DELETE'], url_prefix=api_v
 manager.create_api(Lesson, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='lessons')
 manager.create_api(Step, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='steps')
 # manager.create_api(Bf_user, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='users')
-# manager.create_api(UserLesson, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='userlessons')
+includes = ['lesson','lesson.name','lesson.id','user','user.name','end_dt']
+manager.create_api(UserLesson, include_columns=includes, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='userlessons')
 
 # ADMIN ------------------------------------------------------------
 admin = Admin(app, name='BizFriend.ly Admin', url='/api/admin')
@@ -241,11 +243,18 @@ def autoconvert(s):
             return fn(s)
         except ValueError:
             pass
+        if type(s) == unicode:
+            if ',' in s:
+                try:
+                    return s.split(',')
+                except AttributeError:
+                    pass
     return s
 
 
 @app.route('/check_for_new', methods=['POST'])
 def check_for_new():
+    import pdb; pdb.set_trace()
     # Check once for original count of objects
     # then check if new object exists
     # Remember new object
@@ -270,15 +279,25 @@ def check_for_new():
     
     third_party_service = request.form['thirdPartyService']
     
-    # if app.config['DEBUG']:
-    #     if third_party_service == 'facebook':
-    #         our_response = {
-    #             "attribute_to_display" : "TEST PAGE",
-    #             "attribute_to_remember" : 297429370396923,
-    #             "new_object_added" : True,
-    #             "original_count" : 10000000,
-    #             "timeout" : False
-    #         }
+    if app.config['DEBUG']:
+        if third_party_service == 'facebook':
+            our_response = {
+                "attribute_to_display" : "TEST PAGE",
+                "attribute_to_remember" : 297429370396923,
+                "new_object_added" : True,
+                "original_count" : 10000000,
+                "timeout" : False
+            }
+        if third_party_service == 'trello':
+            step_number = autoconvert(request.form['currentStep[stepNumber]'])
+            if step_number == 3:
+                our_response = {
+                    "attribute_to_display" : "BizFriendly Test Board",
+                    "attribute_to_remember" : "52279d81c2fc68175a000609",
+                    "new_object_added" : True,
+                    "original_count" : 10000000,
+                    "timeout" : False
+                }
 
     resource_url = request.form['currentStep[triggerEndpoint]']
     if 'rememberedAttribute' in request.form:
@@ -287,22 +306,24 @@ def check_for_new():
         resource_url = resource_url.replace('replace_me',remembered_attribute)
     except:
         pass
-    path_for_objects = request.form['currentStep[triggerCheck]'].split(',')
+    # Check if a triggerCheck has been set.
+    path_for_objects = False
+    if request.form['currentStep[triggerCheck]']:
+        path_for_objects = request.form['currentStep[triggerCheck]'].split(',')
     path_for_attribute_to_display = request.form['currentStep[triggerValue]'].split(',')
     path_for_attribute_to_remember = request.form['currentStep[thingToRemember]'].split(',')
     original_count = autoconvert(request.form['originalCount'])
     # If original_count is false in post data, then just return the count of objects at the endpoint.
-    if not original_count:
+    # original_count can be 0 so check not int instead of False
+    if type(original_count) != int:
         # r = current_user.make_authorized_request(service_name, trigger_endpoint)
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
-        for key in path_for_objects:
-            key = autoconvert(key)
-            try:
-                resource = resource[key]
-            except IndexError:
-                # Foursquare, its an empty list when its new.
-                break
+        if path_for_objects:
+            for key in path_for_objects:
+                key = autoconvert(key)
+                if resource:
+                    resource = resource[key]
         original_count = len(resource)
         our_response["original_count"] = original_count
         our_response["timeout"] = False
@@ -311,32 +332,47 @@ def check_for_new():
     #  Check api_resource_url every two seconds for a new addition at path_of_resource_to_check
     timer = 0
     while timer < 60:
+        time.sleep(2)
+        timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
-        for key in path_for_objects:
-            key = autoconvert(key)
-            resource = resource[key] 
+        if path_for_objects:
+            for key in path_for_objects:
+                key = autoconvert(key)
+                if resource:
+                    resource = resource[key] 
         if len(resource) > original_count:
             our_response["new_object_added"] = True
             break
-        time.sleep(2)
-        timer = timer + 2
     if not our_response["new_object_added"]:
         return make_response(json.dumps(our_response), 200) # timeout
     else:
         our_response["timeout"] = False
+    # Facebook pages are added to the end of the list.
     if third_party_service == 'facebook':
-        the_new_object = resource.pop()
-    # Foursquare has new tips as the first in the list
+        the_new_resource = resource.pop()
+    # Foursquare has new tips as the first in the list.
     if third_party_service == 'foursquare':
-        the_new_object = resource.pop(0)
+        the_new_resource = resource.pop(0)
+    # Trello calls check_for_new twice
+    if third_party_service == 'trello':
+        step_number = autoconvert(request.form['currentStep[stepNumber]'])
+        if step_number == 3:
+            # Need to check timestamps of trello boards to find new.
+            # Sort so newest is first in the list.
+            resource.sort(key=lambda board : board["dateLastView"], reverse=True)
+            the_new_resource = resource.pop(0)
+        if step_number == 5:
+            # New cards are at the end of the list
+            the_new_resource = resource.pop()
+
 
     # Return an attribute to display if its not blank.
     if path_for_attribute_to_display[0]:
-        our_response["attribute_to_display"] = get_data_at_endpoint(the_new_object, path_for_attribute_to_display)
-    # Remember an attribute of the new object if its not blank.
+        our_response["attribute_to_display"] = get_data_at_endpoint(the_new_resource, path_for_attribute_to_display)
+    # Remember an attribute of the new resource if its not blank.
     if path_for_attribute_to_remember[0]:
-        our_response["attribute_to_remember"] = get_data_at_endpoint(the_new_object, path_for_attribute_to_remember)
+        our_response["attribute_to_remember"] = get_data_at_endpoint(the_new_resource, path_for_attribute_to_remember)
     return make_response(json.dumps(our_response), 200)
 
 
@@ -373,20 +409,26 @@ def check_if_attribute_exists():
     # Check api_resource_url every two seconds for a value
     timer = 0
     while timer < 60:
+        time.sleep(2)
+        timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
+        if len(resource) == 0: # If empty list, it doesn't exist
+            return json.dumps(our_response)
         for key in path_for_attribute_to_display:
             key = autoconvert(key)
-            if key in resource:
+            if type(resource) == list and type(key) == int:
                 resource = resource[key]
+            elif key in resource:
+                resource = resource[key]
+            else: # key doesn't exist
+                return json.dumps(our_response)
         # If resource is still a dict, we didn't find what we were looking for.
         if type(resource) != dict:
             our_response["attribute_exists"] = True
             our_response["attribute_to_display"] = resource
             our_response["timeout"] = False
             return json.dumps(our_response)
-        time.sleep(2)
-        timer = timer + 2
     return json.dumps(our_response)
 
 
@@ -423,6 +465,8 @@ def check_attribute_for_value():
 
     timer = 0
     while timer < 60:
+        time.sleep(2)
+        timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
         trigger_check = get_data_at_endpoint(resource, trigger_checks)
@@ -432,9 +476,79 @@ def check_attribute_for_value():
             our_response["attribute_to_display"] = get_data_at_endpoint(resource,path_for_attribute_to_display)
             our_response["timeout"] = False
             return json.dumps(our_response)
+    return json.dumps(our_response)
+
+@app.route("/check_attribute_for_update", methods=['POST'])
+def check_attribute_for_update():
+    # Check once for original_value of attribute
+    # then check if attribute value has changed
+    # Return that endpoint
+
+    # Require Authorization header for this endpoint
+    if 'Authorization' in request.headers:
+        htc_access = request.headers['Authorization']
+    else:
+        response['error'] = 'Authorization required'
+        return make_response(response, 403)
+
+    our_response = {
+        "original_attribute_value" : False,
+        "attribute_value_updated" : False,
+        "attribute_to_display" : False,
+        # "attribute_to_remember" : False,
+        "timeout" : True
+    }
+
+    current_user = Bf_user.query.filter_by(access_token=htc_access).first()
+
+    third_party_service = request.form['thirdPartyService']
+    resource_url = request.form['currentStep[triggerEndpoint]']
+    if 'rememberedAttribute' in request.form:
+        remembered_attribute = request.form['rememberedAttribute']
+    try:
+        resource_url = resource_url.replace('replace_me',remembered_attribute)
+    except:
+        pass
+    path_for_attribute_to_check = request.form['currentStep[triggerCheck]'].split(',')
+    # trigger_value = request.form['currentStep[triggerValue]']
+    # Dispaly same column we were checking
+    path_for_attribute_to_display = request.form['currentStep[triggerCheck]'].split(',')
+    # path_for_attribute_to_remember = request.form['currentStep[thingToRemember]'].split(',')
+    original_attribute_values = autoconvert(request.form['originalAttributeValues'])
+    
+    if not original_attribute_values:
+        original_attribute_values = []
+        response = current_user.make_authorized_request(third_party_service, resource_url)
+        resources = response.json()
+        for resource in resources:
+            resource = get_data_at_endpoint(resource, path_for_attribute_to_check)
+            original_attribute_values.append(resource)
+        our_response["original_attribute_values"] = original_attribute_values
+        our_response["timeout"] = False
+        return json.dumps(our_response)
+
+    timer = 0
+    while timer < 60:
         time.sleep(2)
         timer = timer + 2
+        resource = current_user.make_authorized_request(third_party_service, resource_url)
+        resources = resource.json()
+        current_attribute_values = set()
+        for resource in resources:
+            current_attribute_values.add(get_data_at_endpoint(resource, path_for_attribute_to_check))
+        updated_value = current_attribute_values.difference(set(original_attribute_values))  
+        # for resource in resources:
+        #     if updated_value == resource["name"]:
+        #         updated_value_id = resource["id"]
+        if len(updated_value):
+            updated_value = updated_value.pop()
+            our_response["attribute_value_updated"] = True
+            our_response["attribute_to_display"] = updated_value
+            # our_response["attribute_to_remember"] = updated_value_id
+            our_response["timeout"] = False
+            return json.dumps(our_response)
     return json.dumps(our_response)
+
 
 
 @app.route('/get_attributes', methods=['POST'])
@@ -490,13 +604,19 @@ def htc_signup():
     user_email = request.form['email']
     user_pw = request.form['password']
     user_name = request.form['name']
-    current_user = Bf_user(user_email, user_pw, user_name)
     response = {}
 
+    # Validate emails
+    if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", user_email):
+        response['error'] = 'That email doesn\'t look right.'
+        response = make_response(json.dumps(response), 401)
+        response.headers['content-type'] = 'application/json'
+        return response
+
+    current_user = Bf_user(user_email, user_pw, user_name)
     if (Bf_user.query.filter_by(email=user_email).first()):
-        response['error'] = 'Email already in use.'
-        response['status'] = 400
-        response = make_response(json.dumps(response), 400)
+        response['error'] = 'Someone has already signed up with that email.'
+        response = make_response(json.dumps(response), 401)
         response.headers['content-type'] = 'application/json'
         return response
     else:        
@@ -507,7 +627,6 @@ def htc_signup():
     response['token_type'] = 'bearer'
     response['email'] = current_user.email
     response['name'] = current_user.name
-    response['status'] = 200
     # Return a proper response with correct headers
     response = make_response(json.dumps(response), 200)
     response.headers['content-type'] = 'application/json'
@@ -518,8 +637,16 @@ def htc_signup():
 def htc_signin():
     user_email = request.form['email']
     user_password = request.form['password']
-    current_user = Bf_user.query.filter_by(email=user_email).first()
     response = {}
+
+    # Validate emails
+    if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", user_email):
+        response['error'] = 'That email doesn\'t look right.'
+        response = make_response(json.dumps(response), 401)
+        response.headers['content-type'] = 'application/json'
+        return response
+
+    current_user = Bf_user.query.filter_by(email=user_email).first()
     if current_user and current_user.check_pw(user_password):
         # User is valid, return credentials
         response['access_token'] = current_user.access_token
@@ -529,9 +656,8 @@ def htc_signin():
         response['status'] = 200
         response = make_response(json.dumps(response),200)
     else:
-        response['status'] = 400
-        response['error'] = "Invalid login credentials."
-        response = make_response(json.dumps(response),400)
+        response['error'] = "Couldn't find your email and password."
+        response = make_response(json.dumps(response),401)
     response.headers['content-type'] = 'application/json'
     return response
 
@@ -570,12 +696,11 @@ def create_connection():
     response.headers['content-type'] = 'application/json'
     return response
 
-
 @app.route('/record_step', methods=['POST'])
 def record_step():
     response = {}
     lesson_id = request.form['lessonId']
-    step_id = request.form['id']
+    step_id = request.form['currentStep[id]']
     # Require Authorization header for this endpoint
     if 'Authorization' in request.headers:
         htc_access = request.headers['Authorization']
