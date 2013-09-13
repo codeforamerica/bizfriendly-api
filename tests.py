@@ -29,8 +29,8 @@ class bf_api_tester(unittest.TestCase):
 		assert isinstance(response['objects'], list)
 		assert isinstance(response['objects'][0]['id'], int)
 		assert isinstance(response['objects'][0]['name'], unicode)
-		assert isinstance(response['objects'][0]['description'], unicode)
-		assert isinstance(response['objects'][0]['url'], unicode)
+		assert isinstance(response['objects'][0]['short_description'], unicode)
+		assert isinstance(response['objects'][0]['third_party_service'], unicode)
 		assert isinstance(response['objects'][0]['category_id'], int)
 		assert isinstance(response['objects'][0]['category'], dict)
 
