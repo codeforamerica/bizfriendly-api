@@ -6,7 +6,7 @@ from flask.ext.admin import Admin
 from flask.ext.heroku import Heroku
 import hashlib
 from datetime import datetime
-import os, requests, json, time, re
+import os, requests, json, time, re, random
 #----------------------------------------
 # initialization
 #----------------------------------------
@@ -22,6 +22,7 @@ app.config.update(
 )
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['MAIL_GUN_KEY'] = os.environ.get('MAIL_GUN_KEY')
 
 db = SQLAlchemy(app)
 api_version = '/api/v1'
@@ -114,6 +115,7 @@ class Bf_user(db.Model):
     password = db.Column(db.Unicode, nullable=False)
     access_token = db.Column(db.Unicode, nullable=False)
     name = db.Column(db.Unicode, nullable=False)
+    reset_token = db.Column(db.BigInteger, nullable=True)
     # Relations
     lessons = db.relationship("UserLesson")
 
@@ -736,3 +738,60 @@ def record_step():
     response = make_response(json.dumps(response), response['status'])
     response.headers['content-type'] = 'application/json'
     return response
+
+@app.route('/request_password_reset', methods=['POST'])
+def request_password_reset():
+    email = request.form['email']
+
+    # Validate emails
+    if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", email):
+        response = {}
+        response['error'] = 'That email doesn\'t look right.'
+        response = make_response(json.dumps(response), 401)
+        response.headers['content-type'] = 'application/json'
+        return response
+
+    # Get that user
+    current_user = Bf_user.query.filter_by(email=email).first()
+    current_user.reset_token = random.randrange(0,100000000)
+    db.session.commit()
+
+    subject = "Reset BizFriendly Password"
+    text = "Want to change your BizFriend.ly password?"
+    text += "http://0.0.0.0:8080/reset-password.html?"+str(current_user.reset_token)
+    response = requests.post(
+        "https://api.mailgun.net/v2/app17090450.mailgun.org/messages",
+        auth=("api", app.config['MAIL_GUN_KEY']),
+        data={"from": "Andrew Hyder <andrewh@codeforamerica.org>",
+              "to": [email],
+              "subject": subject,
+              "text": text})
+    return response.text
+
+@app.route('/password_reset', methods=['POST'])
+def password_reset():
+    email = request.form['email']
+    password = request.form['password']
+    reset_token = request.form['resetToken']
+    response = {}
+
+    # Validate emails
+    if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", email):
+        response['error'] = 'That email doesn\'t look right.'
+        response = make_response(json.dumps(response), 401)
+        return response
+
+    # Reset password
+    current_user = Bf_user.query.filter_by(email=email).first()
+    if current_user.reset_token == int(reset_token):
+        current_user.password = current_user.pw_digest(password)
+        current_user.reset_token = 0
+        db.session.commit()
+
+    response['message'] = "Password reset"
+    response['status'] = 200
+    response = make_response(json.dumps(response))
+    response.headers['content-type'] = 'application/json'
+    return response
+
+
