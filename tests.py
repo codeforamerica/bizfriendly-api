@@ -5,34 +5,7 @@ class bf_api_tester(unittest.TestCase):
 	
 	def setUp(self):
 		self.api_url = os.environ['API_URL']
-		self.currentStep = {
-			"triggerEndpoint" : self.api_url+'/api/v1/categories',
-			"id" : 1,
-			"name" : "Step Test",
-			"triggerCheck" : "",
-			"triggerValue" : "",
-			"stepType" : "test_step",
-			"stepNumber" : "1",
-			"thingToRemember" : "",
-			"nextStepNumber" : "2",
-			"feedback" : "<h2>Test Feedback!</h2>",
-			"stepText" : "<h1>Test Step Text!</h1>",
-			"lessonId" : 1
-		},
-		self.postData = {
-			"currentStep" : self.currentStep,
-			"rememberedAttribute" : "Test Attribute",
-			"lessonName" : "Test Lesson Name",
-			"lessonId" : 1,
-			"thirdPartyService" : "bizfriendly_tests",
-			"originalCount" : False,
-			"originalAttributeValues" : False
-		},
-		self.headers = {
-			"Content-Type" : "multipart/form-data",
-			"Authorization" : "b350c70b7ce79ef1c599af65669ec1a24c64513cb9c34c5678df3745d93953d4"
-		}
-
+		
 	def test_headers(self):
 		r = requests.get(self.api_url+'/api/v1/categories')
 		assert(r.headers['Access-Control-Allow-Origin']) == '*'
@@ -89,46 +62,5 @@ class bf_api_tester(unittest.TestCase):
 		r = requests.get(self.api_url+'/api/admin')
 		assert(r.headers['content-type']) == 'text/html; charset=utf-8'
 
-
-	def test_check_for_new(self):
-		print "test_check_for_new"
-		print json.dumps(self.postData)
-		r = requests.post(self.api_url+'/check_for_new', data=json.dumps(self.postData), headers=self.headers)
-		response = r.text
-		print response
-
 if __name__ == '__main__':
 	unittest.main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
