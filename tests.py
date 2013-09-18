@@ -4,6 +4,7 @@ class bf_api_tester(unittest.TestCase):
 	
 	def setUp(self):
 		self.api_url = os.environ['API_URL']
+		self.env = os.environ['ENV']
 
 	def test_headers(self):
 		r = requests.get(self.api_url+'/v1/categories')
@@ -46,14 +47,14 @@ class bf_api_tester(unittest.TestCase):
 		assert isinstance(response['objects'][0]['id'], int)
 		assert isinstance(response['objects'][0]['name'], unicode)
 		assert isinstance(response['objects'][0]['step_type'], unicode)
-		assert isinstance(response['objects'][0]['step_number'], unicode)
+		assert isinstance(response['objects'][0]['step_number'], int)
 		assert isinstance(response['objects'][0]['step_text'], unicode)
 		assert isinstance(response['objects'][0]['trigger_endpoint'], unicode)
 		assert isinstance(response['objects'][0]['trigger_check'], unicode)
 		assert isinstance(response['objects'][0]['trigger_value'], unicode)
 		assert isinstance(response['objects'][0]['thing_to_remember'], unicode)
 		assert isinstance(response['objects'][0]['feedback'], unicode)
-		assert isinstance(response['objects'][0]['next_step_number'], unicode)
+		assert isinstance(response['objects'][0]['next_step_number'], int)
 		assert isinstance(response['objects'][0]['lesson_id'], int)
 		assert isinstance(response['objects'][0]['lesson'], dict)
 
@@ -80,9 +81,18 @@ class bf_api_tester(unittest.TestCase):
 			"thirdPartyService" : "facebook",
 			"originalCount" : False
 		}
-		headers = {
-			"authorization" : "30210c670811c191ea2286632682cdcc18566a4892462bb98a1c603f56d22150"
-		}
+		if self.env == 'local':
+			headers = {
+				"authorization" : "30210c670811c191ea2286632682cdcc18566a4892462bb98a1c603f56d22150"
+			}
+		if self.env == 'staging':
+			headers = {
+				"authorization" : "15c76cdaa958ca537146395d612fbd2fdc52f181e852c1ba7943f8cd72c36f8f"
+			}
+		if self.env == 'production':
+			headers = {
+				"authorization" : "0dd9def6a8a5db75a22e7d83adf9a46e8829c6da6f64c7516dc797ba64506228"
+			}
 		bizfriendly_url = self.api_url[0:-4] #trim off '/api'
 		r = requests.post(bizfriendly_url+'/check_for_new', data=data, headers=headers)
 		r = r.json()
@@ -112,9 +122,18 @@ class bf_api_tester(unittest.TestCase):
 			"thirdPartyService" : "facebook",
 			"originalCount" : 1
 		}
-		headers = {
-			"authorization" : "30210c670811c191ea2286632682cdcc18566a4892462bb98a1c603f56d22150"
-		}
+		if self.env == 'local':
+			headers = {
+				"authorization" : "30210c670811c191ea2286632682cdcc18566a4892462bb98a1c603f56d22150"
+			}
+		if self.env == 'staging':
+			headers = {
+				"authorization" : "15c76cdaa958ca537146395d612fbd2fdc52f181e852c1ba7943f8cd72c36f8f"
+			}
+		if self.env == 'production':
+			headers = {
+				"authorization" : "0dd9def6a8a5db75a22e7d83adf9a46e8829c6da6f64c7516dc797ba64506228"
+			}
 		bizfriendly_url = self.api_url[0:-4] #trim off '/api'
 		r = requests.post(bizfriendly_url+'/check_for_new', data=data, headers=headers)
 		r = r.json()
