@@ -6,7 +6,7 @@ from flask.ext.admin import Admin
 from flask.ext.heroku import Heroku
 import hashlib
 from datetime import datetime
-import os, requests, json, time, re
+import os, requests, json, time, re, random
 #----------------------------------------
 # initialization
 #----------------------------------------
@@ -22,6 +22,7 @@ app.config.update(
 )
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['MAIL_GUN_KEY'] = os.environ.get('MAIL_GUN_KEY')
 
 db = SQLAlchemy(app)
 api_version = '/api/v1'
@@ -61,10 +62,12 @@ class Lesson(db.Model):
     additional_resources = db.Column(db.Unicode)
     tips = db.Column(db.Unicode)
     third_party_service = db.Column(db.Unicode)
+    state = db.Column(db.Unicode)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     category = db.relationship('Category', backref=db.backref('lessons', lazy='dynamic'))
+    creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
 
-    def __init__(self, name=None, description=None, long_description=None, short_description=None, time_estimate=None, difficulty=None, additional_resources=None, tips=None, third_party_service=None):
+    def __init__(self, name=None, description=None, long_description=None, short_description=None, time_estimate=None, difficulty=None, additional_resources=None, tips=None, third_party_service=None, state=None ):
         self.name = name
         self.long_description = long_description
         self.short_description = short_description
@@ -73,6 +76,7 @@ class Lesson(db.Model):
         self.additional_resources = additional_resources
         self.tips = tips
         self.third_party_service = third_party_service
+        self.state = state
 
     def __repr__(self):
         return self.name
@@ -114,20 +118,24 @@ class Bf_user(db.Model):
     password = db.Column(db.Unicode, nullable=False)
     access_token = db.Column(db.Unicode, nullable=False)
     name = db.Column(db.Unicode, nullable=False)
+    reset_token = db.Column(db.BigInteger, nullable=True)
+    role = db.Column(db.Unicode, nullable=True)
     # Relations
-    lessons = db.relationship("UserLesson")
+    lessons_completed = db.relationship("UserLesson")
+    lessons_created = db.relationship("Lesson")
 
     # TODO: Decide how strict this email validation should be
     # @validates('email')
     # def validate_email(self, key, address):
     #     pass
 
-    def __init__(self, email=None, password=None, name=None):
+    def __init__(self, email=None, password=None, name=None, role=None):
         self.email = str(email)
         password = str(password)
         self.access_token = hashlib.sha256(str(os.urandom(24))).hexdigest()
         self.password = self.pw_digest(password)
         self.name = name
+        self.role = "user"
 
     def __repr__(self):
         return "Bf_user email: %s, id: %s" %(self.email, self.id)
@@ -243,6 +251,12 @@ def autoconvert(s):
             return fn(s)
         except ValueError:
             pass
+        if type(s) == unicode:
+            if ',' in s:
+                try:
+                    return s.split(',')
+                except AttributeError:
+                    pass
     return s
 
 
@@ -272,15 +286,25 @@ def check_for_new():
     
     third_party_service = request.form['thirdPartyService']
     
-    # if app.config['DEBUG']:
-    #     if third_party_service == 'facebook':
-    #         our_response = {
-    #             "attribute_to_display" : "TEST PAGE",
-    #             "attribute_to_remember" : 297429370396923,
-    #             "new_object_added" : True,
-    #             "original_count" : 10000000,
-    #             "timeout" : False
-    #         }
+    if app.config['DEBUG']:
+        if third_party_service == 'facebook':
+            our_response = {
+                "attribute_to_display" : "TEST PAGE",
+                "attribute_to_remember" : 297429370396923,
+                "new_object_added" : True,
+                "original_count" : 10000000,
+                "timeout" : False
+            }
+        if third_party_service == 'trello':
+            step_number = autoconvert(request.form['currentStep[stepNumber]'])
+            if step_number == 3:
+                our_response = {
+                    "attribute_to_display" : "BizFriendly Test Board",
+                    "attribute_to_remember" : "52279d81c2fc68175a000609",
+                    "new_object_added" : True,
+                    "original_count" : 10000000,
+                    "timeout" : False
+                }
 
     resource_url = request.form['currentStep[triggerEndpoint]']
     if 'rememberedAttribute' in request.form:
@@ -289,22 +313,24 @@ def check_for_new():
         resource_url = resource_url.replace('replace_me',remembered_attribute)
     except:
         pass
-    path_for_objects = request.form['currentStep[triggerCheck]'].split(',')
+    # Check if a triggerCheck has been set.
+    path_for_objects = False
+    if request.form['currentStep[triggerCheck]']:
+        path_for_objects = request.form['currentStep[triggerCheck]'].split(',')
     path_for_attribute_to_display = request.form['currentStep[triggerValue]'].split(',')
     path_for_attribute_to_remember = request.form['currentStep[thingToRemember]'].split(',')
     original_count = autoconvert(request.form['originalCount'])
     # If original_count is false in post data, then just return the count of objects at the endpoint.
-    if not original_count:
+    # original_count can be 0 so check not int instead of False
+    if type(original_count) != int:
         # r = current_user.make_authorized_request(service_name, trigger_endpoint)
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
-        for key in path_for_objects:
-            key = autoconvert(key)
-            try:
-                resource = resource[key]
-            except IndexError:
-                # Foursquare, its an empty list when its new.
-                break
+        if path_for_objects:
+            for key in path_for_objects:
+                key = autoconvert(key)
+                if resource:
+                    resource = resource[key]
         original_count = len(resource)
         our_response["original_count"] = original_count
         our_response["timeout"] = False
@@ -313,32 +339,47 @@ def check_for_new():
     #  Check api_resource_url every two seconds for a new addition at path_of_resource_to_check
     timer = 0
     while timer < 60:
+        time.sleep(2)
+        timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
-        for key in path_for_objects:
-            key = autoconvert(key)
-            resource = resource[key] 
+        if path_for_objects:
+            for key in path_for_objects:
+                key = autoconvert(key)
+                if resource:
+                    resource = resource[key] 
         if len(resource) > original_count:
             our_response["new_object_added"] = True
             break
-        time.sleep(2)
-        timer = timer + 2
     if not our_response["new_object_added"]:
         return make_response(json.dumps(our_response), 200) # timeout
     else:
         our_response["timeout"] = False
+    # Facebook pages are added to the end of the list.
     if third_party_service == 'facebook':
-        the_new_object = resource.pop()
-    # Foursquare has new tips as the first in the list
+        the_new_resource = resource.pop()
+    # Foursquare has new tips as the first in the list.
     if third_party_service == 'foursquare':
-        the_new_object = resource.pop(0)
+        the_new_resource = resource.pop(0)
+    # Trello calls check_for_new twice
+    if third_party_service == 'trello':
+        step_number = autoconvert(request.form['currentStep[stepNumber]'])
+        if step_number == 3:
+            # Need to check timestamps of trello boards to find new.
+            # Sort so newest is first in the list.
+            resource.sort(key=lambda board : board["dateLastView"], reverse=True)
+            the_new_resource = resource.pop(0)
+        if step_number == 5:
+            # New cards are at the end of the list
+            the_new_resource = resource.pop()
+
 
     # Return an attribute to display if its not blank.
     if path_for_attribute_to_display[0]:
-        our_response["attribute_to_display"] = get_data_at_endpoint(the_new_object, path_for_attribute_to_display)
-    # Remember an attribute of the new object if its not blank.
+        our_response["attribute_to_display"] = get_data_at_endpoint(the_new_resource, path_for_attribute_to_display)
+    # Remember an attribute of the new resource if its not blank.
     if path_for_attribute_to_remember[0]:
-        our_response["attribute_to_remember"] = get_data_at_endpoint(the_new_object, path_for_attribute_to_remember)
+        our_response["attribute_to_remember"] = get_data_at_endpoint(the_new_resource, path_for_attribute_to_remember)
     return make_response(json.dumps(our_response), 200)
 
 
@@ -375,20 +416,26 @@ def check_if_attribute_exists():
     # Check api_resource_url every two seconds for a value
     timer = 0
     while timer < 60:
+        time.sleep(2)
+        timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
+        if len(resource) == 0: # If empty list, it doesn't exist
+            return json.dumps(our_response)
         for key in path_for_attribute_to_display:
             key = autoconvert(key)
-            if key in resource:
+            if type(resource) == list and type(key) == int:
                 resource = resource[key]
+            elif key in resource:
+                resource = resource[key]
+            else: # key doesn't exist
+                return json.dumps(our_response)
         # If resource is still a dict, we didn't find what we were looking for.
         if type(resource) != dict:
             our_response["attribute_exists"] = True
             our_response["attribute_to_display"] = resource
             our_response["timeout"] = False
             return json.dumps(our_response)
-        time.sleep(2)
-        timer = timer + 2
     return json.dumps(our_response)
 
 
@@ -425,6 +472,8 @@ def check_attribute_for_value():
 
     timer = 0
     while timer < 60:
+        time.sleep(2)
+        timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
         resource = resource.json()
         trigger_check = get_data_at_endpoint(resource, trigger_checks)
@@ -434,9 +483,79 @@ def check_attribute_for_value():
             our_response["attribute_to_display"] = get_data_at_endpoint(resource,path_for_attribute_to_display)
             our_response["timeout"] = False
             return json.dumps(our_response)
+    return json.dumps(our_response)
+
+@app.route("/check_attribute_for_update", methods=['POST'])
+def check_attribute_for_update():
+    # Check once for original_value of attribute
+    # then check if attribute value has changed
+    # Return that endpoint
+
+    # Require Authorization header for this endpoint
+    if 'Authorization' in request.headers:
+        htc_access = request.headers['Authorization']
+    else:
+        response['error'] = 'Authorization required'
+        return make_response(response, 403)
+
+    our_response = {
+        "original_attribute_value" : False,
+        "attribute_value_updated" : False,
+        "attribute_to_display" : False,
+        # "attribute_to_remember" : False,
+        "timeout" : True
+    }
+
+    current_user = Bf_user.query.filter_by(access_token=htc_access).first()
+
+    third_party_service = request.form['thirdPartyService']
+    resource_url = request.form['currentStep[triggerEndpoint]']
+    if 'rememberedAttribute' in request.form:
+        remembered_attribute = request.form['rememberedAttribute']
+    try:
+        resource_url = resource_url.replace('replace_me',remembered_attribute)
+    except:
+        pass
+    path_for_attribute_to_check = request.form['currentStep[triggerCheck]'].split(',')
+    # trigger_value = request.form['currentStep[triggerValue]']
+    # Dispaly same column we were checking
+    path_for_attribute_to_display = request.form['currentStep[triggerCheck]'].split(',')
+    # path_for_attribute_to_remember = request.form['currentStep[thingToRemember]'].split(',')
+    original_attribute_values = autoconvert(request.form['originalAttributeValues'])
+    
+    if not original_attribute_values:
+        original_attribute_values = []
+        response = current_user.make_authorized_request(third_party_service, resource_url)
+        resources = response.json()
+        for resource in resources:
+            resource = get_data_at_endpoint(resource, path_for_attribute_to_check)
+            original_attribute_values.append(resource)
+        our_response["original_attribute_values"] = original_attribute_values
+        our_response["timeout"] = False
+        return json.dumps(our_response)
+
+    timer = 0
+    while timer < 60:
         time.sleep(2)
         timer = timer + 2
+        resource = current_user.make_authorized_request(third_party_service, resource_url)
+        resources = resource.json()
+        current_attribute_values = set()
+        for resource in resources:
+            current_attribute_values.add(get_data_at_endpoint(resource, path_for_attribute_to_check))
+        updated_value = current_attribute_values.difference(set(original_attribute_values))  
+        # for resource in resources:
+        #     if updated_value == resource["name"]:
+        #         updated_value_id = resource["id"]
+        if len(updated_value):
+            updated_value = updated_value.pop()
+            our_response["attribute_value_updated"] = True
+            our_response["attribute_to_display"] = updated_value
+            # our_response["attribute_to_remember"] = updated_value_id
+            our_response["timeout"] = False
+            return json.dumps(our_response)
     return json.dumps(our_response)
+
 
 
 @app.route('/get_attributes', methods=['POST'])
@@ -599,7 +718,7 @@ def record_step():
     cur_less = Lesson.query.filter_by(id=lesson_id).first()
     user_less = UserLesson(start_dt=datetime.now())
     # Already started the lesson, just alter recent step
-    for lesson in current_user.lessons:
+    for lesson in current_user.lessons_completed:
         if lesson.lesson_id == cur_less.id:
             if step_id > lesson.recent_step:
                 lesson.recent_step = step_id
@@ -615,7 +734,7 @@ def record_step():
     if current_user and cur_less:
         cur_less.recent_step = step_id
         user_less.lesson = cur_less
-        current_user.lessons.append(user_less)
+        current_user.lessons_completed.append(user_less)
         db.session.commit()
         response['status'] = 200
     else:
@@ -625,7 +744,6 @@ def record_step():
     response = make_response(json.dumps(response), response['status'])
     response.headers['content-type'] = 'application/json'
     return response
-
 
 @app.route('/third_party_services', methods=['GET','POST'])
 def third_party_services():
@@ -639,61 +757,57 @@ def third_party_services():
     return json.dumps(response)
 
 
+@app.route('/request_password_reset', methods=['POST'])
+def request_password_reset():
+    email = request.form['email']
 
+    # Validate emails
+    if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", email):
+        response = {}
+        response['error'] = 'That email doesn\'t look right.'
+        response = make_response(json.dumps(response), 401)
+        response.headers['content-type'] = 'application/json'
+        return response
 
+    # Get that user
+    current_user = Bf_user.query.filter_by(email=email).first()
+    current_user.reset_token = random.randrange(0,100000000)
+    db.session.commit()
 
+    subject = "Reset BizFriendly Password"
+    text = "Want to change your BizFriend.ly password?"
+    text += "http://staging.bizfriend.ly/reset-password.html?"+str(current_user.reset_token)
+    response = requests.post(
+        "https://api.mailgun.net/v2/app17090450.mailgun.org/messages",
+        auth=("api", app.config['MAIL_GUN_KEY']),
+        data={"from": "Andrew Hyder <andrewh@codeforamerica.org>",
+              "to": [email],
+              "subject": subject,
+              "text": text})
+    return response.text
 
+@app.route('/password_reset', methods=['POST'])
+def password_reset():
+    email = request.form['email']
+    password = request.form['password']
+    reset_token = request.form['resetToken']
+    response = {}
 
+    # Validate emails
+    if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", email):
+        response['error'] = 'That email doesn\'t look right.'
+        response = make_response(json.dumps(response), 401)
+        return response
 
+    # Reset password
+    current_user = Bf_user.query.filter_by(email=email).first()
+    if current_user.reset_token == int(reset_token):
+        current_user.password = current_user.pw_digest(password)
+        current_user.reset_token = None
+        db.session.commit()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    response['message'] = "Password reset"
+    response['status'] = 200
+    response = make_response(json.dumps(response))
+    response.headers['content-type'] = 'application/json'
+    return response
