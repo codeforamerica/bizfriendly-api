@@ -29,7 +29,7 @@ api_version = '/api/v1'
 
 def add_cors_header(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Headers'] = 'Authorization'
+    response.headers['Access-Control-Allow-Headers'] = 'Authorization, Content-Type'
     return response
 
 app.after_request(add_cors_header)
@@ -67,7 +67,7 @@ class Lesson(db.Model):
     category = db.relationship('Category', backref=db.backref('lessons', lazy='dynamic'))
     creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
 
-    def __init__(self, name=None, description=None, long_description=None, short_description=None, time_estimate=None, difficulty=None, additional_resources=None, tips=None, third_party_service=None, state=None ):
+    def __init__(self, category_id=None, name=None, description=None, long_description=None, short_description=None, time_estimate=None, difficulty=None, additional_resources=None, tips=None, third_party_service=None, state=None ):
         self.name = name
         self.long_description = long_description
         self.short_description = short_description
@@ -77,6 +77,7 @@ class Lesson(db.Model):
         self.tips = tips
         self.third_party_service = third_party_service
         self.state = state
+        self.category_id = category_id
 
     def __repr__(self):
         return self.name
@@ -96,7 +97,7 @@ class Step(db.Model):
     feedback = db.Column(db.Unicode)
     next_step_number = db.Column(db.Integer)
 
-    def __init__(self, name=None, step_number=None, step_type=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, thing_to_remember=None, feedback=None, next_step_number=None):
+    def __init__(self, name=None, step_number=None, step_type=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, thing_to_remember=None, feedback=None, next_step_number=None, lesson_id=None):
         self.name = name
         self.step_number = step_number
         self.step_type = step_type
@@ -107,6 +108,7 @@ class Step(db.Model):
         self.thing_to_remember = thing_to_remember
         self.feedback = feedback
         self.next_step_number = next_step_number
+        self.lesson_id = lesson_id
 
     def __repr__(self):
         return self.name
@@ -190,12 +192,13 @@ class Connection(db.Model):
 
 # API ------------------------------------------------------------
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
-manager.create_api(Category, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='categories')
-manager.create_api(Lesson, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='lessons')
-manager.create_api(Step, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='steps')
-# manager.create_api(Bf_user, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='users')
-includes = ['lesson','lesson.name','lesson.id','user','user.name','end_dt']
-manager.create_api(UserLesson, include_columns=includes, methods=['GET', 'POST', 'DELETE'], url_prefix=api_version, collection_name='userlessons')
+manager.create_api(Category, methods=['GET', 'POST'], url_prefix=api_version, collection_name='categories', max_results_per_page=-1)
+manager.create_api(Lesson, methods=['GET', 'POST'], url_prefix=api_version, collection_name='lessons', max_results_per_page=-1)
+manager.create_api(Step, methods=['GET', 'POST'], url_prefix=api_version, collection_name='steps', max_results_per_page=-1)
+columns = ['id','name','email']
+manager.create_api(Bf_user, include_columns=columns,methods=['GET'], url_prefix=api_version, collection_name='users', max_results_per_page=-1)
+columns = ['lesson','lesson.name','lesson.id','user','user.name','end_dt']
+manager.create_api(UserLesson, include_columns=columns, methods=['GET'], url_prefix=api_version, collection_name='userlessons', max_results_per_page=-1)
 
 # ADMIN ------------------------------------------------------------
 admin = Admin(app, name='BizFriend.ly Admin', url='/api/admin')
