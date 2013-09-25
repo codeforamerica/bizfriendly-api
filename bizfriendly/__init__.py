@@ -43,43 +43,65 @@ class Category(db.Model):
     name = db.Column(db.Unicode, unique=True)
     description = db.Column(db.Unicode)
     url = db.Column(db.Unicode)
+    state = db.Column(db.Unicode)
+    creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
 
-    def __init__(self, name=None, description=None, url=None):
+    def __init__(self, name=None, description=None, url=None, state=None, creator_id=None):
         self.name = name
         self.description = description
         self.url = url
+        self.state = state
+        self.creator_id = creator_id
+
+    def __repr__(self):
+        return self.name
+
+class Service(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Unicode, unique=True)
+    icon = db.Column(db.Unicode)
+    short_description = db.Column(db.Unicode)
+    long_description = db.Column(db.Unicode)
+    # time_estimate = db.Column(db.Unicode)
+    # difficulty = db.Column(db.Unicode)
+    additional_resources = db.Column(db.Unicode)
+    tips = db.Column(db.Unicode)
+    media = db.Column(db.Unicode)
+    state = db.Column(db.Unicode)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
+    # category = db.relationship('Category', backref=db.backref('lessons', lazy='dynamic'))
+    creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
+    # crator_name = db.Column(db.Unicode, db.ForeignKey('bf_user.name'))
+
+    def __init__(self, category_id=None, name=None, icon=None, description=None, long_description=None, short_description=None, additional_resources=None, tips=None, media=None, state=None, creator_id=None ):
+        self.name = name
+        self.icon = icon
+        self.long_description = long_description
+        self.short_description = short_description
+        # self.time_estimate = time_estimate
+        # self.difficulty = difficulty
+        self.additional_resources = additional_resources
+        self.tips = tips
+        self.media = media
+        self.state = state
+        self.category_id = category_id
+        self.creator_id = creator_id
 
     def __repr__(self):
         return self.name
 
 class Lesson(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Unicode, unique=True)
-    long_description = db.Column(db.Unicode)
-    short_description = db.Column(db.Unicode)
-    time_estimate = db.Column(db.Unicode)
-    difficulty = db.Column(db.Unicode)
-    additional_resources = db.Column(db.Unicode)
-    tips = db.Column(db.Unicode)
-    third_party_service = db.Column(db.Unicode)
-    state = db.Column(db.Unicode)
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
-    category = db.relationship('Category', backref=db.backref('lessons', lazy='dynamic'))
+    name = db.Column(db.Unicode)
+    description = db.Column(db.Unicode)
+    ease = db.Column(db.Unicode)
+    service_id = db.Column(db.Integer, db.ForeignKey('service.id'))
     creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
-    # crator_name = db.Column(db.Unicode, db.ForeignKey('bf_user.name'))
 
-    def __init__(self, category_id=None, name=None, description=None, long_description=None, short_description=None, time_estimate=None, difficulty=None, additional_resources=None, tips=None, third_party_service=None, state=None, creator_id=None ):
+    def init(self, name=None, description=None, ease=None):
         self.name = name
-        self.long_description = long_description
-        self.short_description = short_description
-        self.time_estimate = time_estimate
-        self.difficulty = difficulty
-        self.additional_resources = additional_resources
-        self.tips = tips
-        self.third_party_service = third_party_service
-        self.state = state
-        self.category_id = category_id
-        self.creator_id = creator_id
+        self.description = description
+        self.ease = ease
 
     def __repr__(self):
         return self.name
@@ -90,7 +112,7 @@ class Step(db.Model):
     step_type = db.Column(db.Unicode)
     step_number = db.Column(db.Integer)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'))
-    lesson = db.relationship('Lesson', backref=db.backref('steps', lazy='dynamic'))
+    # lesson = db.relationship('Lesson', backref=db.backref('steps', lazy='dynamic'))
     step_text = db.Column(db.Unicode)
     trigger_endpoint = db.Column(db.Unicode)
     trigger_check = db.Column(db.Unicode)
@@ -98,6 +120,8 @@ class Step(db.Model):
     thing_to_remember = db.Column(db.Unicode)
     feedback = db.Column(db.Unicode)
     next_step_number = db.Column(db.Integer)
+    lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'))
+    creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
 
     def __init__(self, name=None, step_number=None, step_type=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, thing_to_remember=None, feedback=None, next_step_number=None, lesson_id=None):
         self.name = name
@@ -195,6 +219,7 @@ class Connection(db.Model):
 # API ------------------------------------------------------------
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
 manager.create_api(Category, methods=['GET', 'POST'], url_prefix=api_version, collection_name='categories', max_results_per_page=-1)
+manager.create_api(Service, methods=['GET', 'POST'], url_prefix=api_version, collection_name='services', max_results_per_page=-1)
 manager.create_api(Lesson, methods=['GET', 'POST'], url_prefix=api_version, collection_name='lessons', max_results_per_page=-1)
 manager.create_api(Step, methods=['GET', 'POST'], url_prefix=api_version, collection_name='steps', max_results_per_page=-1)
 columns = ['id','name','email']
@@ -207,6 +232,10 @@ admin = Admin(app, name='BizFriend.ly Admin', url='/api/admin')
 
 class CategoryView(ModelView):
     column_display_pk = True
+
+class ServiceView(ModelView):
+    column_display_pk = True
+    column_auto_select_related = True
 
 class LessonView(ModelView):
     column_display_pk = True
@@ -227,6 +256,7 @@ class StepView(ModelView):
 #     column_auto_select_related = True
 
 admin.add_view(CategoryView(Category, db.session))
+admin.add_view(CategoryView(Service, db.session))
 admin.add_view(LessonView(Lesson, db.session))
 admin.add_view(StepView(Step, db.session))
 # admin.add_view(Bf_userView(Bf_user, db.session))
