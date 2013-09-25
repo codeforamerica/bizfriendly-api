@@ -216,6 +216,21 @@ class Connection(db.Model):
     def __repr__(self):
         return "Connection user_id: %s, service: %s" % (self.user_id, self.service)
 
+class Rating(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    lesson_or_step = db.Column(db.Unicode)
+    lesson_or_step_id = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
+    rating = db.Column(db.Integer)
+    feedback = db.Column(db.Unicode)
+
+    def __init__(self, lesson_or_step=lesson_or_step, lesson_or_step_id=lesson_or_step_id, user_id=user_id, rating=rating, feedback=feedback):
+        self.lesson_or_step = lesson_or_step
+        self.lesson_or_step_id = lesson_or_step_id
+        self.user_id = user_id
+        self.rating = rating
+        self.feedback = feedback
+
 # API ------------------------------------------------------------
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
 manager.create_api(Category, methods=['GET', 'POST'], url_prefix=api_version, collection_name='categories', max_results_per_page=-1)
@@ -226,6 +241,7 @@ columns = ['id','name','email']
 manager.create_api(Bf_user, include_columns=columns,methods=['GET'], url_prefix=api_version, collection_name='users', max_results_per_page=-1)
 columns = ['lesson','lesson.name','lesson.id','user','user.name','end_dt']
 manager.create_api(UserLesson, include_columns=columns, methods=['GET'], url_prefix=api_version, collection_name='userlessons', max_results_per_page=-1)
+manager.create_api(Rating, methods=['GET','POST'], url_prefix=api_version, collection_name='ratings', max_results_per_page=-1)
 
 # ADMIN ------------------------------------------------------------
 admin = Admin(app, name='BizFriend.ly Admin', url='/api/admin')
@@ -255,12 +271,17 @@ class StepView(ModelView):
 #     column_display_pk = True
 #     column_auto_select_related = True
 
+class RatingView(ModelView):
+    column_display_pk = True
+    column_auto_select_related = True
+
 admin.add_view(CategoryView(Category, db.session))
 admin.add_view(CategoryView(Service, db.session))
 admin.add_view(LessonView(Lesson, db.session))
 admin.add_view(StepView(Step, db.session))
 # admin.add_view(Bf_userView(Bf_user, db.session))
 # admin.add_view(UserLessonView(UserLesson, db.session))
+admin.add_view(RatingView(Rating,db.session))
 
 # Functions --------------------------------------------------------
 
