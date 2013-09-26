@@ -20,7 +20,24 @@ class bf_api_tester(unittest.TestCase):
 		assert isinstance(response['objects'][0]['name'], unicode)
 		assert isinstance(response['objects'][0]['description'], unicode)
 		assert isinstance(response['objects'][0]['url'], unicode)
+		assert isinstance(response['objects'][0]['state'], unicode)
+		assert isinstance(response['objects'][0]['services'], list)
+		assert isinstance(response['objects'][0]['creator_id'], int)
+
+	def test_services(self):
+		r = requests.get(self.api_url+'/v1/services')
+		response = r.json()
+		assert isinstance(response, dict)
+		assert isinstance(response['objects'], list)
+		assert isinstance(response['objects'][0]['id'], int)
+		assert isinstance(response['objects'][0]['name'], unicode)
+		assert isinstance(response['objects'][0]['long_description'], unicode)
+		assert isinstance(response['objects'][0]['short_description'], unicode)
+		assert isinstance(response['objects'][0]['additional_resources'], unicode)
+		assert isinstance(response['objects'][0]['tips'], unicode)
+		assert isinstance(response['objects'][0]['category_id'], int)
 		assert isinstance(response['objects'][0]['lessons'], list)
+		assert isinstance(response['objects'][0]['creator_id'], int)
 
 	def test_lessons(self):
 		r = requests.get(self.api_url+'/v1/lessons')
@@ -29,15 +46,11 @@ class bf_api_tester(unittest.TestCase):
 		assert isinstance(response['objects'], list)
 		assert isinstance(response['objects'][0]['id'], int)
 		assert isinstance(response['objects'][0]['name'], unicode)
-		assert isinstance(response['objects'][0]['long_description'], unicode)
-		assert isinstance(response['objects'][0]['short_description'], unicode)
-		assert isinstance(response['objects'][0]['time_estimate'], unicode)
-		assert isinstance(response['objects'][0]['difficulty'], unicode)
-		assert isinstance(response['objects'][0]['additional_resources'], unicode)
-		assert isinstance(response['objects'][0]['tips'], unicode)
-		assert isinstance(response['objects'][0]['third_party_service'], unicode)
-		assert isinstance(response['objects'][0]['category_id'], int)
-		assert isinstance(response['objects'][0]['category'], dict)
+		assert isinstance(response['objects'][0]['description'], unicode)
+		assert isinstance(response['objects'][0]['service_id'], int)
+		assert isinstance(response['objects'][0]['steps'], list)
+		assert isinstance(response['objects'][0]['creator_id'], int)
+
 
 	def test_steps(self):
 		r = requests.get(self.api_url+'/v1/steps')
@@ -54,9 +67,8 @@ class bf_api_tester(unittest.TestCase):
 		assert isinstance(response['objects'][0]['trigger_value'], unicode)
 		assert isinstance(response['objects'][0]['thing_to_remember'], unicode)
 		assert isinstance(response['objects'][0]['feedback'], unicode)
-		assert isinstance(response['objects'][0]['next_step_number'], int)
 		assert isinstance(response['objects'][0]['lesson_id'], int)
-		assert isinstance(response['objects'][0]['lesson'], dict)
+		assert isinstance(response['objects'][0]['creator_id'], int)
 
 	def test_admin(self):
 		r = requests.get(self.api_url+'/admin')
