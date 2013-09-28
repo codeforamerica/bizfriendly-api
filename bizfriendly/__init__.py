@@ -6,4 +6,4 @@ from flask import Flask
 
 app = Flask(__name__)
 
-import config, api, admin, routes
+import config, admin, routes, api
