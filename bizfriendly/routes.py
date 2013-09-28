@@ -1,6 +1,7 @@
 from flask import request, make_response
 from bizfriendly import app
 from models import *
+from api import *
 
 from datetime import datetime
 import os, requests, json, time, re
@@ -388,7 +389,7 @@ def get_attributes():
 
 @app.route('/signup', methods=['POST'])
 def htc_signup():
-    user_email = request.form['email']
+    user_email = request.form['email'].lower()
     user_pw = request.form['password']
     user_name = request.form['name']
     response = {}
@@ -410,10 +411,11 @@ def htc_signup():
         db.session.add(current_user)
         db.session.commit()
 
+    current_user = Bf_user.query.filter_by(email=user_email).first()
     response['access_token'] = current_user.access_token 
-    response['token_type'] = 'bearer'
     response['email'] = current_user.email
     response['name'] = current_user.name
+    response['id'] = current_user.id
     # Return a proper response with correct headers
     response = make_response(json.dumps(response), 200)
     response.headers['content-type'] = 'application/json'
@@ -440,7 +442,7 @@ def htc_signin():
         response['token_type'] = "bearer"
         response['email'] = current_user.email
         response['name'] = current_user.name
-        response['status'] = 200
+        response['id'] = current_user.id
         response = make_response(json.dumps(response),200)
     else:
         response['error'] = "Couldn't find your email and password."

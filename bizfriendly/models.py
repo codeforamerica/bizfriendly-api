@@ -1,5 +1,5 @@
 from flask.ext.sqlalchemy import SQLAlchemy
-import hashlib, requests
+import hashlib, requests, os
 from bizfriendly import app
 
 db = SQLAlchemy(app)
@@ -11,9 +11,9 @@ db = SQLAlchemy(app)
 class Category(db.Model):
     # Attributes
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Unicode, unique=True)
+    name = db.Column(db.Unicode, nullable=False, unique=True)
     description = db.Column(db.Unicode)
-    url = db.Column(db.Unicode)
+    url = db.Column(db.Unicode, unique=True)
     state = db.Column(db.Unicode)
     # Realtionships
     creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
@@ -31,7 +31,7 @@ class Category(db.Model):
 class Service(db.Model):
     # Attributes
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Unicode, unique=True)
+    name = db.Column(db.Unicode, nullable=False, unique=True)
     icon = db.Column(db.Unicode)
     short_description = db.Column(db.Unicode)
     long_description = db.Column(db.Unicode)
@@ -62,18 +62,22 @@ class Service(db.Model):
 class Lesson(db.Model):
     # Attributes
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Unicode)
+    name = db.Column(db.Unicode, nullable=False, unique=True)
     description = db.Column(db.Unicode)
     ease = db.Column(db.Unicode)
+    state = db.Column(db.Unicode)
     # Relationships
-    service_id = db.Column(db.Integer, db.ForeignKey('service.id'))
+    service_id = db.Column(db.Integer, db.ForeignKey('service.id'), nullable=False)
     service = db.relationship('Service', backref=db.backref('lessons', lazy='dynamic'))
     creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
 
-    def init(self, name=None, description=None, ease=None):
+    def init(self, name=None, description=None, ease=None, state=None, service_id=None, creator_id=None):
         self.name = name
         self.description = description
         self.ease = ease
+        self.state = state
+        self.service_id = service_id
+        self.creator_id = creator_id
 
     def __repr__(self):
         return self.name
@@ -83,8 +87,7 @@ class Step(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode)
     step_type = db.Column(db.Unicode)
-    step_number = db.Column(db.Integer)
-    lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'))
+    step_number = db.Column(db.Integer, nullable=False)
     step_text = db.Column(db.Unicode)
     trigger_endpoint = db.Column(db.Unicode)
     trigger_check = db.Column(db.Unicode)
@@ -93,11 +96,11 @@ class Step(db.Model):
     feedback = db.Column(db.Unicode)
     next_step_number = db.Column(db.Integer)
     # Relationships
-    lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'))
+    lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=False)
     lesson = db.relationship('Lesson', backref=db.backref('steps', lazy='dynamic'))
     creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
 
-    def __init__(self, name=None, step_number=None, step_type=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, thing_to_remember=None, feedback=None, next_step_number=None, lesson_id=None):
+    def __init__(self, name=None, step_number=None, step_type=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, thing_to_remember=None, feedback=None, next_step_number=None, lesson_id=None, creator_id=None):
         self.name = name
         self.step_number = step_number
         self.step_type = step_type
@@ -109,6 +112,7 @@ class Step(db.Model):
         self.feedback = feedback
         self.next_step_number = next_step_number
         self.lesson_id = lesson_id
+        self.creator_id = creator_id
 
     def __repr__(self):
         return self.name
