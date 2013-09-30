@@ -14,5 +14,4 @@ export SECRET_KEY='123456'
 # export API_URL='http://app.bizfriend.ly/api'
 # export API_URL='http://app-staging.bizfriend.ly/api'
 export API_URL='http://127.0.0.1:8000/api'
-export MAIL_GUN_API='key-296-5yqinsh7xtwcldcyr2y-t-rn6vg8'
 export ENV="local"
