@@ -11,6 +11,7 @@ SQLAlchemy==0.8.2
 WTForms==1.0.4
 Werkzeug==0.9.4
 alembic==0.5.0
+boto==2.13.3
 distribute==0.6.34
 flask-heroku==0.1.4
 gunicorn==0.17.4
