@@ -544,6 +544,10 @@ def third_party_services():
 
 @app.route('/image_upload', methods=['POST'])
 def image_upload():
+    try:
+        os.mkdir('tmp')
+    except Exception as e:
+        pass
     file = request.files['files[]']
     file.save(os.path.join('tmp', file.filename))
 
