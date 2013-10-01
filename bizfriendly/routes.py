@@ -6,6 +6,7 @@ from api import *
 from datetime import datetime
 import os, requests, json, time, re, boto
 from boto.s3.key import Key
+from PIL import Image
 
 
 
@@ -541,10 +542,20 @@ def third_party_services():
         response.append(data)
     return json.dumps(response)
 
-@app.route('/img_upload', methods=['POST'])
-def img_upload():
+@app.route('/image_upload', methods=['POST'])
+def image_upload():
     file = request.files['files[]']
     file.save(os.path.join('tmp', file.filename))
+
+    # Check image size
+    img = Image.open("tmp/"+file.filename)
+    # get the image's width and height in pixels
+    width, height = img.size
+    if width > 260:
+        response = {}
+        response["message"] = "Image too wide."
+        return make_response(json.dumps(response), 401)
+
     conn = boto.connect_s3(app.config['AWS_ACCESS_KEY_ID'], app.config['AWS_SECRET_ACCESS_KEY'])
     mybucket = conn.get_bucket(app.config['S3_BUCKET_NAME'])
     k = Key(mybucket)
