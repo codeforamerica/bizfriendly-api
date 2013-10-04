@@ -13,15 +13,14 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode, nullable=False, unique=True)
     description = db.Column(db.Unicode)
-    url = db.Column(db.Unicode, unique=True)
+    # url = db.Column(db.Unicode, unique=True)
     state = db.Column(db.Unicode)
     # Realtionships
     creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
 
-    def __init__(self, name=None, description=None, url=None, state=None, creator_id=None):
+    def __init__(self, name=None, description=None, state=None, creator_id=None):
         self.name = name
         self.description = description
-        self.url = url
         self.state = state
         self.creator_id = creator_id
 
@@ -32,6 +31,7 @@ class Service(db.Model):
     # Attributes
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode, nullable=False, unique=True)
+    url = db.Column(db.Unicode)
     icon = db.Column(db.Unicode)
     short_description = db.Column(db.Unicode)
     long_description = db.Column(db.Unicode)
@@ -44,8 +44,9 @@ class Service(db.Model):
     category = db.relationship('Category', backref=db.backref('services', lazy='dynamic'))
     creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
 
-    def __init__(self, category_id=None, name=None, icon=None, description=None, long_description=None, short_description=None, additional_resources=None, tips=None, media=None, state=None, creator_id=None ):
+    def __init__(self, category_id=None, name=None, url=None, icon=None, description=None, long_description=None, short_description=None, additional_resources=None, tips=None, media=None, state=None, creator_id=None ):
         self.name = name
+        self.url = url
         self.icon = icon
         self.long_description = long_description
         self.short_description = short_description
