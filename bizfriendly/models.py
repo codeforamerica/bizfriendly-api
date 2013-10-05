@@ -13,7 +13,6 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode, nullable=False, unique=True)
     description = db.Column(db.Unicode)
-    # url = db.Column(db.Unicode, unique=True)
     state = db.Column(db.Unicode)
     # Realtionships
     creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
@@ -86,7 +85,6 @@ class Lesson(db.Model):
 class Step(db.Model):
     # Attributes
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Unicode)
     step_type = db.Column(db.Unicode)
     step_number = db.Column(db.Integer, nullable=False)
     step_text = db.Column(db.Unicode)
@@ -101,8 +99,7 @@ class Step(db.Model):
     lesson = db.relationship('Lesson', backref=db.backref('steps', lazy='dynamic'))
     creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
 
-    def __init__(self, name=None, step_number=None, step_type=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, thing_to_remember=None, feedback=None, next_step_number=None, lesson_id=None, creator_id=None):
-        self.name = name
+    def __init__(self, step_number=None, step_type=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, thing_to_remember=None, feedback=None, next_step_number=None, lesson_id=None, creator_id=None):
         self.step_number = step_number
         self.step_type = step_type
         self.step_text = step_text
@@ -115,9 +112,6 @@ class Step(db.Model):
         self.lesson_id = lesson_id
         self.creator_id = creator_id
 
-    def __repr__(self):
-        return self.name
-
 class Bf_user(db.Model):
     # Attributes
     id = db.Column(db.Integer, primary_key=True)
@@ -125,6 +119,8 @@ class Bf_user(db.Model):
     password = db.Column(db.Unicode, nullable=False)
     access_token = db.Column(db.Unicode, nullable=False)
     name = db.Column(db.Unicode, nullable=False)
+    business_name = db.Column(db.Unicode, nullable=True)
+    location = db.Column(db.Unicode, nullable=True)
     reset_token = db.Column(db.BigInteger, nullable=True)
     role = db.Column(db.Unicode, nullable=True)
     # Relations
@@ -136,12 +132,14 @@ class Bf_user(db.Model):
     # def validate_email(self, key, address):
     #     pass
 
-    def __init__(self, email=None, password=None, name=None, role=None):
+    def __init__(self, email=None, password=None, name=None, business_name=None, location=None, role=None):
         self.email = str(email)
         password = str(password)
         self.access_token = hashlib.sha256(str(os.urandom(24))).hexdigest()
         self.password = self.pw_digest(password)
         self.name = name
+        self.business_name = business_name
+        self.location = location
         self.role = "user"
 
     def __repr__(self):
@@ -209,3 +207,16 @@ class Rating(db.Model):
         self.user_id = user_id
         self.rating = rating
         self.feedback = feedback
+
+class Request(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.Unicode)
+    description = db.Column(db.Unicode)
+    why = db.Column(db.Unicode)
+    creator_id = db.Column(db.Integer, nullable=False)
+
+    def __init__(self, name=None, description=None, why=None, creator_id=None):
+        self.name = name
+        self.description = name
+        self.why = why
+        self.creator_id = creator_id

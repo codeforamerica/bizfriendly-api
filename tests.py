@@ -20,9 +20,8 @@ class bf_api_tester(unittest.TestCase):
         assert isinstance(response['objects'], list)
         assert isinstance(response['objects'][0]['id'], int)
         assert isinstance(response['objects'][0]['name'], unicode)
-        assert isinstance(response['objects'][0]['description'], unicode)
-        assert isinstance(response['objects'][0]['url'], unicode)
-        assert isinstance(response['objects'][0]['state'], unicode)
+        assert "description" in response['objects'][0]
+        assert "state" in response['objects'][0]
         assert isinstance(response['objects'][0]['services'], list)
         assert isinstance(response['objects'][0]['creator_id'], int)
 
@@ -33,10 +32,11 @@ class bf_api_tester(unittest.TestCase):
         assert isinstance(response['objects'], list)
         assert isinstance(response['objects'][0]['id'], int)
         assert isinstance(response['objects'][0]['name'], unicode)
-        assert isinstance(response['objects'][0]['long_description'], unicode)
-        assert isinstance(response['objects'][0]['short_description'], unicode)
-        assert isinstance(response['objects'][0]['additional_resources'], unicode)
-        assert isinstance(response['objects'][0]['tips'], unicode)
+        assert "url" in response['objects'][0]
+        assert "short_description" in response['objects'][0]
+        assert "long_description" in response['objects'][0]
+        assert "additional_resources" in response['objects'][0]
+        assert "tips" in response['objects'][0]
         assert isinstance(response['objects'][0]['category_id'], int)
         assert isinstance(response['objects'][0]['lessons'], list)
         assert isinstance(response['objects'][0]['creator_id'], int)
@@ -48,7 +48,7 @@ class bf_api_tester(unittest.TestCase):
         assert isinstance(response['objects'], list)
         assert isinstance(response['objects'][0]['id'], int)
         assert isinstance(response['objects'][0]['name'], unicode)
-        assert isinstance(response['objects'][0]['description'], unicode)
+        assert "description" in response["objects"][0]
         assert isinstance(response['objects'][0]['service_id'], int)
         assert isinstance(response['objects'][0]['steps'], list)
         assert isinstance(response['objects'][0]['creator_id'], int)
@@ -60,16 +60,25 @@ class bf_api_tester(unittest.TestCase):
         assert isinstance(response, dict)
         assert isinstance(response['objects'], list)
         assert isinstance(response['objects'][0]['id'], int)
-        assert isinstance(response['objects'][0]['name'], unicode)
-        assert isinstance(response['objects'][0]['step_type'], unicode)
-        assert isinstance(response['objects'][0]['step_number'], int)
-        assert isinstance(response['objects'][0]['step_text'], unicode)
-        assert isinstance(response['objects'][0]['trigger_endpoint'], unicode)
-        assert isinstance(response['objects'][0]['trigger_check'], unicode)
-        assert isinstance(response['objects'][0]['trigger_value'], unicode)
-        assert isinstance(response['objects'][0]['thing_to_remember'], unicode)
-        assert isinstance(response['objects'][0]['feedback'], unicode)
+        assert "step_type" in response["objects"][0]
+        assert "step_number" in response["objects"][0]
+        assert "step_text" in response["objects"][0]
+        assert "trigger_endpoint" in response["objects"][0]
+        assert "trigger_check" in response["objects"][0]
+        assert "trigger_value" in response["objects"][0]
+        assert "thing_to_remember" in response["objects"][0]
         assert isinstance(response['objects'][0]['lesson_id'], int)
+        assert isinstance(response['objects'][0]['creator_id'], int)
+
+    def test_requests(self):
+        r = requests.get(self.api_url+'/v1/requests')
+        response = r.json()
+        assert isinstance(response, dict)
+        assert isinstance(response['objects'], list)
+        assert isinstance(response['objects'][0]['id'], int)
+        assert "name" in response["objects"][0]
+        assert "description" in response["objects"][0]
+        assert "why" in response["objects"][0]
         assert isinstance(response['objects'][0]['creator_id'], int)
 
     def test_admin(self):
@@ -97,7 +106,8 @@ class bf_api_tester(unittest.TestCase):
         data = {
             "name" : "Test User",
             "email" : "TestUserEmail@Tester.com",
-            "password" : "Test Password"
+            "password" : "Test Password",
+            "googliegoogle" : "WHAT"
         }
         bizfriendly_url = self.api_url[0:-4] #trim off '/api'
         r = requests.post(bizfriendly_url+'/signup', data=data)
@@ -188,12 +198,10 @@ class bf_api_tester(unittest.TestCase):
         assert(r["timeout"] == False)
         assert(r["new_object_added"] == True)
 
-    def test_put_existing_category(self):
-        # import pdb; pdb.set_trace()
+    def test_post_existing_category(self):
         data = {
             "name" : "Test Category",
             "description" : "Test Description",
-            "url" : "Test URL",
             "state" : "Test State"
         }
         headers = {
@@ -202,49 +210,26 @@ class bf_api_tester(unittest.TestCase):
         r = requests.post(self.api_url+'/v1/categories', data=json.dumps(data), headers=headers)
         assert(r.status_code == 400)
 
-    # def test_put_new_lesson(self):
-    #     import pdb; pdb.set_trace()
-    #     def random_char(num):
-    #         return ''.join(choice(ascii_lowercase) for x in range(num))
-    #     data = {
-    #         "name" : random_char(20),
-    #         "description" : "Test Lesson",
-    #         "ease" : "Test Ease",
-    #         "state" : "Test State",
-    #         "service_id" : 0,
-    #         "creator_id" : 0
-    #     }
-    #     r = requests.post(self.api_url+'/v1/lessons', data=data)
-    #     print r.text
-    #     assert(r.status_code == 200)
-        # r = r.json()
-        # # {u'error': u'Someone has already signed up with that email.'}
-        # assert("error" in r)
+    def test_put_existing_category(self):
+        def random_char(num):
+            return ''.join(choice(ascii_lowercase) for x in range(num))
+        data = {
+            "name" : "Test Category",
+            "description" : random_char(10),
+            "state" : "Test State"
+        }
+        headers = {
+            'Content-Type' : 'application/json'
+        }
+        r = requests.get(self.api_url+'/v1/categories')
+        response = r.json()
+        test_category_id = 0
+        for category in response['objects']:
+            if category["name"] == "Test Category":
+                test_category_id = str(category["id"])
 
-
-
+        r = requests.put(self.api_url+'/v1/categories/'+test_category_id, data=json.dumps(data), headers=headers)
+        assert(r.status_code == 200)
 
 if __name__ == '__main__':
     unittest.main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
