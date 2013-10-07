@@ -16,6 +16,7 @@ class Category(db.Model):
     state = db.Column(db.Unicode)
     # Realtionships
     creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
+    creator = db.relationship('Bf_user', backref=db.backref('categories', lazy='dynamic')) 
 
     def __init__(self, name=None, description=None, state=None, creator_id=None):
         self.name = name
@@ -42,6 +43,7 @@ class Service(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     category = db.relationship('Category', backref=db.backref('services', lazy='dynamic'))
     creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
+    creator = db.relationship('Bf_user', backref=db.backref('services', lazy='dynamic'))
 
     def __init__(self, category_id=None, name=None, url=None, icon=None, description=None, long_description=None, short_description=None, additional_resources=None, tips=None, media=None, state=None, creator_id=None ):
         self.name = name
@@ -70,6 +72,7 @@ class Lesson(db.Model):
     service_id = db.Column(db.Integer, db.ForeignKey('service.id'), nullable=False)
     service = db.relationship('Service', backref=db.backref('lessons', lazy='dynamic'))
     creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
+    creator = db.relationship('Bf_user', backref=db.backref('lessons', lazy='dynamic'))
 
     def init(self, name=None, description=None, ease=None, state=None, service_id=None, creator_id=None):
         self.name = name
