@@ -164,18 +164,19 @@ class Bf_user(db.Model):
                 return requests.get(req_url + connection.access_token, headers={'User-Agent': 'Python'})
 
 class UserLesson(db.Model):
+    # Attributes
     __tablename__ = 'user_to_lesson'
-    user_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'),
-        primary_key=True)
-    lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'),
-        primary_key=True)
     recent_step = db.Column(db.Integer, db.ForeignKey('step.id'))
     start_dt = db.Column(db.DateTime)
     end_dt = db.Column(db.DateTime, nullable=True)
+    # Relationships
+    user_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'), primary_key=True)
+    lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), primary_key=True)
     lesson = db.relationship('Lesson')
     user = db.relationship('Bf_user')
 
     def __init__(self, start_dt=None, end_dt=None, recent_step=None):
+        self.recent_step = recent_step
         self.start_dt = start_dt 
         self.end_dt = end_dt
 
@@ -183,11 +184,13 @@ class UserLesson(db.Model):
         return "User_to_lesson user_id: %s, lesson_id: %s" % (self.user_id, self.lesson_id)
 
 class Connection(db.Model):
+    # Attributes
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
-    user = db.relationship('Bf_user', backref=db.backref('connections', lazy='dynamic'))
     service = db.Column(db.Unicode)
     access_token = db.Column(db.Unicode)
+    # Relationships
+    user_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
+    user = db.relationship('Bf_user', backref=db.backref('connections', lazy='dynamic'))
 
     def __init__(self, service=None, access_token=None):
         self.service = service
@@ -197,12 +200,15 @@ class Connection(db.Model):
         return "Connection user_id: %s, service: %s" % (self.user_id, self.service)
 
 class Rating(db.Model):
+    # Attributes
     id = db.Column(db.Integer, primary_key=True)
     lesson_or_step = db.Column(db.Unicode)
     lesson_or_step_id = db.Column(db.Integer)
-    user_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
     rating = db.Column(db.Integer)
     feedback = db.Column(db.Unicode)
+    # Relationships
+    user_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
+    user = db.relationship('Bf_user', backref=db.backref('ratings', lazy='dynamic'))
 
     def __init__(self, lesson_or_step=lesson_or_step, lesson_or_step_id=lesson_or_step_id, user_id=user_id, rating=rating, feedback=feedback):
         self.lesson_or_step = lesson_or_step
@@ -212,11 +218,14 @@ class Rating(db.Model):
         self.feedback = feedback
 
 class Request(db.Model):
+    # Attributes
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode)
     description = db.Column(db.Unicode)
     why = db.Column(db.Unicode)
-    creator_id = db.Column(db.Integer, nullable=False)
+    # Relationships
+    creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
+    creator = db.relationship('Bf_user', backref=db.backref('requests', lazy='dynamic'))
 
     def __init__(self, name=None, description=None, why=None, creator_id=None):
         self.name = name
