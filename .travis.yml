@@ -2,5 +2,7 @@ language: python
 python:
 - '2.7'
 install: pip install -r requirements.txt --use-mirrors
-env: API_URL="http://app.bizfriend.ly"
+=======
+env: API_URL="http://app.bizfriend.ly/api" ENV="production"
+# env: API_URL="http://app-staging.bizfriend.ly/api" ENV="staging"
 script: python tests.py

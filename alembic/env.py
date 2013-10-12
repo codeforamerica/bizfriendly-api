@@ -8,7 +8,8 @@ import os.path
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 
-from howtocity import db, app
+from bizfriendly import app
+from bizfriendly.models import db
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
