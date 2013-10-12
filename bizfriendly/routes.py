@@ -596,7 +596,7 @@ def request_password_reset():
     text = "Want to change your BizFriend.ly password?"
     text += "http://staging.bizfriend.ly/reset-password.html?"+str(current_user.reset_token)
     response = requests.post(
-        "https://api.mailgun.net/v2/app17090450.mailgun.org/messages",
+        "https://api.mailgun.net/v2/app14961102.mailgun.org/messages",
         auth=("api", app.config['MAIL_GUN_KEY']),
         data={"from": "Andrew Hyder <andrewh@codeforamerica.org>",
               "to": [email],
