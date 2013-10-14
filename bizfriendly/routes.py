@@ -424,6 +424,11 @@ def htc_signup():
     html += '<li>Start Teaching! Teach other business owners the skills you\'re best at <a href="http://bizfriend.ly/teach.html">http://bizfriend.ly/teach.html</a></li>'
     html += "<li>See all what other businesses are up to and track your accomplishments <a href=\"http://bizfriend.ly/connect.html\">http://bizfriend.ly/connect.html</a></li></ul>"
     html += "<p>We'd love to hear any feedback you have at <a href=\"http://bit.ly/1bS1yEQ\">http://bit.ly/1bS1yEQ</a> and feel free to email us with any questions!</p>"
+    html += '''Andew & Ariel<br/>
+               Co-Founders of <a href="http://bizfriend.ly">BizFriend.ly</a><br/>
+               2013 Code for America Fellows<br/>
+               <a href="mailto:kansascity@codeforamerica.org">kansascity@codeforamerica.org</a>
+            '''
 
     requests.post(
         "https://api.mailgun.net/v2/app14961102.mailgun.org/messages",
