@@ -417,12 +417,13 @@ def htc_signup():
 
     # EMail the new user
     subject = "Welcome to BizFriend.ly"
-    text = "Thanks for joining, BizFriend.ly! We're a community of entrepreneurial learners and teachers who share the latest digital skills and web services to run your business." 
-    text += "Now that you have an account, there's a few things you can do:"
-    text += "<ul><li>Start Learning! Try out a few lessons at http://bizfriend.ly/learn.html</li>"
-    text += "<li>Start Teaching! Teach other business owners the skills you're best at http://bizfriend.ly/teach.html</li>"
-    text += "<li>See all what other businesses are up to and track your accomplishments http://bizfriend.ly/connect.html</li>"
-    text += "<li>We'd love to hear any feedback you have at http://bit.ly/1bS1yEQ and feel free to email us with any questions!</li></ul>"
+    html = '<h3>Thanks for joining, <a href="http://bizfriend.ly">BizFriend.ly</a>!</h3>'
+    html += '<p>We\'re a community of entrepreneurial learners and teachers who share the latest digital skills and web services to run your business.</p>' 
+    html += "<p>Now that you have an account, there's a few things you can do:</p>"
+    html += '<ul><li>Start Learning! Try out a few lessons at <a href="http://bizfriend.ly/learn.html">http://bizfriend.ly/learn.html</a></li>'
+    html += '<li>Start Teaching! Teach other business owners the skills you\'re best at <a href="http://bizfriend.ly/teach.html">http://bizfriend.ly/teach.html</a></li>'
+    html += "<li>See all what other businesses are up to and track your accomplishments <a href=\"http://bizfriend.ly/connect.html\">http://bizfriend.ly/connect.html</a></li></ul>"
+    html += "<p>We'd love to hear any feedback you have at <a href=\"http://bit.ly/1bS1yEQ\">http://bit.ly/1bS1yEQ</a> and feel free to email us with any questions!</p>"
 
     requests.post(
         "https://api.mailgun.net/v2/app14961102.mailgun.org/messages",
@@ -430,7 +431,7 @@ def htc_signup():
         data={"from": "Andrew Hyder <andrewh@codeforamerica.org>",
               "to": [user_email],
               "subject": subject,
-              "text": text})
+              "html": html})
 
     current_user = Bf_user.query.filter_by(email=user_email).first()
     response['access_token'] = current_user.access_token 
