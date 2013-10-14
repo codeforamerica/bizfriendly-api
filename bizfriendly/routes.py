@@ -415,6 +415,23 @@ def htc_signup():
         db.session.add(current_user)
         db.session.commit()
 
+    # EMail the new user
+    subject = "Welcome to BizFriend.ly"
+    text = "Thanks for joining, BizFriend.ly! We're a community of entrepreneurial learners and teachers who share the latest digital skills and web services to run your business." 
+    text += "Now that you have an account, there's a few things you can do:"
+    text += "<ul><li>Start Learning! Try out a few lessons at http://bizfriend.ly/learn.html</li>"
+    text += "<li>Start Teaching! Teach other business owners the skills you're best at http://bizfriend.ly/teach.html</li>"
+    text += "<li>See all what other businesses are up to and track your accomplishments http://bizfriend.ly/connect.html</li>"
+    text += "<li>We'd love to hear any feedback you have at http://bit.ly/1bS1yEQ and feel free to email us with any questions!</li></ul>"
+
+    requests.post(
+        "https://api.mailgun.net/v2/app14961102.mailgun.org/messages",
+        auth=("api", app.config['MAIL_GUN_KEY']),
+        data={"from": "Andrew Hyder <andrewh@codeforamerica.org>",
+              "to": [user_email],
+              "subject": subject,
+              "text": text})
+
     current_user = Bf_user.query.filter_by(email=user_email).first()
     response['access_token'] = current_user.access_token 
     response['email'] = current_user.email
