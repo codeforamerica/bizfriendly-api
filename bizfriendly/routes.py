@@ -652,3 +652,27 @@ def password_reset():
     response = make_response(json.dumps(response))
     response.headers['content-type'] = 'application/json'
     return response
+
+@app.route('/.well-known/status', methods=['GET'])
+def status():
+    api_url = os.environ['API_URL']
+    response = {}
+    response['status'] = []
+    # Check DB
+    try:
+        db_category = Category.query.first()
+    except:
+        response['status'].append("Database is unavailable")
+    # Check API
+    r = requests.get(api_url+'/api/v1/categories')
+    if r.status_code != 200:
+        response['status'].append("API is unavailable")
+    if response["status"]:
+        ",".join(response["status"])
+    if not response['status']:
+        response['status'] = "ok"
+    # Timestamp
+    response["updated"] = int(time.time())
+    response["dependencies"] = ["S3", "Mailgun"]
+    response = make_response(json.dumps(response))
+    return response
