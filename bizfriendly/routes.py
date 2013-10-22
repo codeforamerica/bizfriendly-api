@@ -655,22 +655,13 @@ def password_reset():
 
 @app.route('/.well-known/status', methods=['GET'])
 def status():
-    api_url = os.environ['API_URL']
     response = {}
-    response['status'] = []
+    response['status'] = 'ok'
     # Check DB
     try:
         db_category = Category.query.first()
     except:
-        response['status'].append("Database is unavailable")
-    # Check API
-    r = requests.get(api_url+'/api/v1/categories')
-    if r.status_code != 200:
-        response['status'].append("API is unavailable")
-    if response["status"]:
-        ",".join(response["status"])
-    if not response['status']:
-        response['status'] = "ok"
+        response['status'] = "Database is unavailable"
     # Timestamp
     response["updated"] = int(time.time())
     response["dependencies"] = ["S3", "Mailgun"]
