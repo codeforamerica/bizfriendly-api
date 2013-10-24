@@ -647,6 +647,10 @@ def password_reset():
 
     # Reset password
     current_user = Bf_user.query.filter_by(email=email).first()
+    if not current_user:
+        response['error'] = "Couldn't find your email and password."
+        response = make_response(json.dumps(response),401)
+        return response
     if current_user.reset_token == int(reset_token):
         current_user.password = current_user.pw_digest(password)
         current_user.reset_token = None
