@@ -601,10 +601,10 @@ def image_upload():
 @app.route('/request_password_reset', methods=['POST'])
 def request_password_reset():
     email = request.form['email']
+    response = {}
 
     # Validate emails
     if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", email):
-        response = {}
         response['error'] = 'That email doesn\'t look right.'
         response = make_response(json.dumps(response), 401)
         response.headers['content-type'] = 'application/json'
@@ -612,6 +612,10 @@ def request_password_reset():
 
     # Get that user
     current_user = Bf_user.query.filter_by(email=email).first()
+    if not current_user:
+        response['error'] = "Couldn't find your email and password."
+        response = make_response(json.dumps(response),401)
+        return response
     current_user.reset_token = random.randrange(0,100000000)
     db.session.commit()
 
@@ -638,6 +642,7 @@ def password_reset():
     if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", email):
         response['error'] = 'That email doesn\'t look right.'
         response = make_response(json.dumps(response), 401)
+        response.headers['content-type'] = 'application/json'
         return response
 
     # Reset password
