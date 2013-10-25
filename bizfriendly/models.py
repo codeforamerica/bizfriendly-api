@@ -163,6 +163,18 @@ class Bf_user(db.Model):
             if connection.service == service:
                 return requests.get(req_url + connection.access_token, headers={'User-Agent': 'Python'})
 
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return unicode(self.id)
+
 class UserLesson(db.Model):
     # Attributes
     __tablename__ = 'user_to_lesson'

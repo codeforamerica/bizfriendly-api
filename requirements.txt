@@ -1,5 +1,7 @@
 Flask==0.10.1
 Flask-Admin==1.0.6
+Flask-Bcrypt==0.5.2
+Flask-Login==0.2.7
 Flask-OAuth==0.12
 Flask-Restless==0.12.0
 Flask-SQLAlchemy==0.16
@@ -12,7 +14,9 @@ SQLAlchemy==0.8.2
 WTForms==1.0.4
 Werkzeug==0.9.4
 alembic==0.5.0
+bcrypt==1.0.2
 boto==2.13.3
+cffi==0.7.2
 distribute==0.6.34
 flask-heroku==0.1.4
 gunicorn==0.17.4
@@ -22,6 +26,8 @@ newrelic==2.0.0.1
 oauth2==1.5.211
 poster==0.8.1
 psycopg2==2.5
+py-bcrypt==0.4
+pycparser==2.10
 python-dateutil==2.1
 requests==1.2.0
 six==1.4.1
