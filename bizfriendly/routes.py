@@ -663,3 +663,26 @@ def status():
     response["dependencies"] = ["S3", "Mailgun"]
     response = make_response(json.dumps(response))
     return response
+
+@app.route("/new_content_email", methods=["POST"])
+def new_content_email():
+    # import pdb; pdb.set_trace()
+    admins = Bf_user.query.filter_by(role="admin")
+    newSkill = request.form
+    creator = Bf_user.query.filter_by(id=newSkill["creator_id"]).first()
+    subject = "New "+newSkill["state"]+" Skill Added to BizFriend.ly"
+    html = "<p>Skill Name: "+newSkill["name"]+"</p>"
+    html += "<p>Skill Description: "+newSkill["description"]+"</p>"
+    html += "<p>Created by: "+creator.name+", "+creator.email+"</p>"
+    html += "<br>"
+    html += "<p>You're getting this email because you are an Admin for BizFriend.ly</p>"
+    for admin in admins:
+        response = requests.post(
+            "https://api.mailgun.net/v2/app17090450.mailgun.org/messages",
+            auth=("api", app.config['MAIL_GUN_KEY']),
+            data={"from": "Andrew Hyder <andrewh@codeforamerica.org>",
+                  "to": admin.email,
+                  "subject": subject,
+                  "html": html})
+        print response.text
+    return response.text
