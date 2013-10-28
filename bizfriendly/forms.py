@@ -1,12 +1,9 @@
 from flask.ext.wtf import Form
 from wtforms import TextField, PasswordField
-from flask.ext.bcrypt import Bcrypt
 from models import Bf_user
 from datetime import date
 
 from bizfriendly import app
-
-bcrypt = Bcrypt(app)
 
 class LoginForm(Form):
     email = TextField()

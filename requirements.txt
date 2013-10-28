@@ -14,7 +14,6 @@ SQLAlchemy==0.8.2
 WTForms==1.0.4
 Werkzeug==0.9.4
 alembic==0.5.0
-bcrypt==1.0.2
 boto==2.13.3
 cffi==0.7.2
 distribute==0.6.34
