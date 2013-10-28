@@ -104,6 +104,7 @@ def check_for_new():
         path_for_objects = request.form['currentStep[triggerCheck]'].split(',')
     path_for_attribute_to_display = request.form['currentStep[triggerValue]'].split(',')
     path_for_attribute_to_remember = request.form['currentStep[thingToRemember]'].split(',')
+    place_in_collection = request.form['currentStep[placeInCollection]']
     original_count = autoconvert(request.form['originalCount'])
     # If original_count is false in post data, then just return the count of objects at the endpoint.
     # original_count can be 0 so check not int instead of False
@@ -141,23 +142,18 @@ def check_for_new():
     else:
         our_response["timeout"] = False
     # Facebook pages are added to the end of the list.
-    if third_party_service == 'facebook':
+    if place_in_collection == 'last':
         the_new_resource = resource.pop()
     # Foursquare has new tips as the first in the list.
-    if third_party_service == 'foursquare':
+    if place_in_collection == 'first':
         the_new_resource = resource.pop(0)
-    # Trello calls check_for_new twice
-    if third_party_service == 'trello':
-        step_number = autoconvert(request.form['currentStep[stepNumber]'])
-        if step_number == 3:
-            # Need to check timestamps of trello boards to find new.
-            # Sort so newest is first in the list.
+    # Foursquare lists have the new list second, after the default to do list.
+    if place_in_collection == 'second':
+        the_new_resource = resource.pop(1)
+    if place_in_collection == 'alphabetical':
+        if third_party_service == "trello":
             resource.sort(key=lambda board : board["dateLastView"], reverse=True)
             the_new_resource = resource.pop(0)
-        if step_number == 5:
-            # New cards are at the end of the list
-            the_new_resource = resource.pop()
-
 
     # Return an attribute to display if its not blank.
     if path_for_attribute_to_display[0]:
