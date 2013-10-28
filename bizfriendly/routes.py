@@ -196,7 +196,7 @@ def check_if_attribute_exists():
     
     # Check api_resource_url every two seconds for a value
     timer = 0
-    while timer < 60:
+    while timer < 28:
         time.sleep(2)
         timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
@@ -252,7 +252,7 @@ def check_attribute_for_value():
     path_for_attribute_to_display = request.form['currentStep[thingToRemember]'].split(',')
 
     timer = 0
-    while timer < 60:
+    while timer < 28:
         time.sleep(2)
         timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
@@ -316,7 +316,7 @@ def check_attribute_for_update():
         return json.dumps(our_response)
 
     timer = 0
-    while timer < 60:
+    while timer < 28:
         time.sleep(2)
         timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
