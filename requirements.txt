@@ -8,13 +8,11 @@ Flask-WTF==0.9.1
 Jinja2==2.7.1
 Mako==0.8.1
 MarkupSafe==0.18
-PIL==1.1.7
 SQLAlchemy==0.8.2
 WTForms==1.0.4
 Werkzeug==0.9.4
 alembic==0.5.0
 boto==2.13.3
-cffi==0.7.2
 distribute==0.6.34
 flask-heroku==0.1.4
 gunicorn==0.17.4
