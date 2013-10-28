@@ -666,12 +666,44 @@ def status():
 
 @app.route("/new_content_email", methods=["POST"])
 def new_content_email():
+    # ToDo: Change staging to production
     admins = Bf_user.query.filter_by(role="admin")
-    newSkill = request.form
-    creator = Bf_user.query.filter_by(id=newSkill["creator_id"]).first()
-    subject = "New "+newSkill["state"]+" Skill Added to BizFriend.ly"
-    html = "<p>Skill Name: "+newSkill["name"]+"</p>"
-    html += "<p>Skill Description: "+newSkill["description"]+"</p>"
+    new_content = request.form
+    creator = Bf_user.query.filter_by(id=new_content["creator_id"]).first()
+    if "category_id" in new_content:
+        category = Category.query.filter_by(id=new_content["category_id"]).first()
+        service = Service.query.filter_by(name=new_content["name"]).first()
+    if "service_id" in new_content:
+        service = Service.query.filter_by(id=new_content["service_id"]).first()
+        category = Category.query.filter_by(id=service.category.id).first()
+    subject = "New "+new_content["state"]+" content Added to BizFriend.ly"
+    html = "<p>Name: "+new_content["name"]+"</p>"
+    if "category_id" in new_content:
+        html += '<p>Service Link: <a href="http://staging.bizfriend.ly/service.html?'+str(service.id)+'">http://staging.bizfriend.ly/service.html?'+str(service.id)+'</a></p>'
+    if "service_id" in new_content:
+        html += '<p>Lesson Link: <a href="http://staging.bizfriend.ly/instructions.html?'+new_content["id"]+'">http://staging.bizfriend.ly/instructions.html?'+new_content["id"]+'</a></p>'
+    if "url" in new_content:
+        html += "<p>Url: "+new_content["url"]+"</p>"
+    if "description" in new_content:
+        html += "<p>Description: "+new_content["description"]+"</p>"
+    if "short_description" in new_content:
+        html += "<p>Short Descrption: "+new_content["short_description"]+"</p>"
+    if "long_description" in new_content:
+        html += "<p>Long Descrption: "+new_content["long_description"]+"</p>"
+    if "additional_resources" in new_content:
+        html += "<p>Additional Resources: "+new_content["additional_resources"]+"</p>"
+    if "tips" in new_content:
+        html += "<p>Tips: "+new_content["tips"]+"</p>"
+    if "icon" in new_content:
+        html += "<p>Icon: <img src="+new_content["icon"]+"></p>"
+    if "media" in new_content:
+        html += "<p>Media: "+new_content["media"]+"</p>"
+    if "category_id" in new_content:
+        html += "<p>Skill: "+category.name+"</p>"
+    if "service_id" in new_content:
+        html += "<p>Skill: "+category.name+"</p>"
+        html += "<p>Service: "+service.name+"</p>"
+
     html += "<p>Created by: "+creator.name+", "+creator.email+"</p>"
     html += "<br>"
     html += "<p>You're getting this email because you are an Admin for BizFriend.ly</p>"
