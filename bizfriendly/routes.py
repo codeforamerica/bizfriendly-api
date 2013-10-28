@@ -666,7 +666,6 @@ def status():
 
 @app.route("/new_content_email", methods=["POST"])
 def new_content_email():
-    # import pdb; pdb.set_trace()
     admins = Bf_user.query.filter_by(role="admin")
     newSkill = request.form
     creator = Bf_user.query.filter_by(id=newSkill["creator_id"]).first()
@@ -678,6 +677,8 @@ def new_content_email():
     html += "<p>You're getting this email because you are an Admin for BizFriend.ly</p>"
     for admin in admins:
         response = requests.post(
+            # Production app14961102.mailgun.org
+            # Staging app17090450.mailgun.org
             "https://api.mailgun.net/v2/app17090450.mailgun.org/messages",
             auth=("api", app.config['MAIL_GUN_KEY']),
             data={"from": "Andrew Hyder <andrewh@codeforamerica.org>",
