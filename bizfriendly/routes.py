@@ -124,7 +124,7 @@ def check_for_new():
 
     #  Check api_resource_url every two seconds for a new addition at path_of_resource_to_check
     timer = 0
-    while timer < 60:
+    while timer < 28:
         time.sleep(2)
         timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
