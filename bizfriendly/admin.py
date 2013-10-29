@@ -63,9 +63,9 @@ class StepView(AdminView):
     # column_list = ('lesson_id','lesson','id','name','step_number','step_type','step_text','trigger_endpoint','trigger_check','trigger_value','thing_to_remember','feedback','next_step_number')
     # column_sortable_list = (('lesson_id',Lesson.id),'name','step_type')
 
-# class Bf_userView(AdminView):
-#     column_display_pk = True
-#     column_list = ('name','email','business_name','location')
+class Bf_userView(AdminView):
+    column_display_pk = True
+    column_list = ('name','email','business_name','location','role')
 
 class UserLessonView(AdminView):
     column_display_pk = True
@@ -79,6 +79,6 @@ admin.add_view(CategoryView(Category, db.session))
 admin.add_view(CategoryView(Service, db.session))
 admin.add_view(LessonView(Lesson, db.session))
 admin.add_view(StepView(Step, db.session))
-# admin.add_view(Bf_userView(Bf_user, db.session))
+admin.add_view(Bf_userView(Bf_user, db.session))
 admin.add_view(UserLessonView(UserLesson, db.session))
 admin.add_view(RatingView(Rating,db.session))
