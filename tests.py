@@ -70,16 +70,16 @@ class bf_api_tester(unittest.TestCase):
         assert isinstance(response['objects'][0]['lesson_id'], int)
         assert isinstance(response['objects'][0]['creator_id'], int)
 
-    def test_requests(self):
-        r = requests.get(self.api_url+'/v1/requests')
-        response = r.json()
-        assert isinstance(response, dict)
-        assert isinstance(response['objects'], list)
-        assert isinstance(response['objects'][0]['id'], int)
-        assert "name" in response["objects"][0]
-        assert "description" in response["objects"][0]
-        assert "why" in response["objects"][0]
-        assert isinstance(response['objects'][0]['creator_id'], int)
+    # def test_requests(self):
+    #     r = requests.get(self.api_url+'/v1/requests')
+    #     response = r.json()
+    #     assert isinstance(response, dict)
+    #     assert isinstance(response['objects'], list)
+    #     assert isinstance(response['objects'][0]['id'], int)
+    #     assert "name" in response["objects"][0]
+    #     assert "description" in response["objects"][0]
+    #     assert "why" in response["objects"][0]
+    #     assert isinstance(response['objects'][0]['creator_id'], int)
 
     def test_admin(self):
         r = requests.get(self.api_url+'/admin')
@@ -116,87 +116,87 @@ class bf_api_tester(unittest.TestCase):
         # {u'error': u'Someone has already signed up with that email.'}
         assert("error" in r)
 
-    def test_check_for_new_no_original_count(self):
-        data = {
-            "currentStep[id]" : 0,
-            "currentStep[name]" : "test Step",
-            "currentStep[stepType]" : "check_for_new",
-            "currentStep[stepNumber]" : 1,
-            "currentStep[stepText]" : "Test Step Text",
-            "currentStep[triggerEndpoint]" : "https://graph.facebook.com/me/accounts?fields=name&access_token=",
-            "currentStep[triggerCheck]" : "data",
-            "currentStep[triggerValue]" : "name",
-            "currentStep[thingToRemember]" : "Test Thing to remember",
-            "currentStep[feedback]" : "Test Feedback",
-            "currentStep[nextStepNumber]" : "Test Next Step Number",
-            "currentStep[stepState]" : "unfinished",
-            "lessonName" : "Test Lesson Name",
-            "lessonId" : 0,
-            "thirdPartyService" : "facebook",
-            "originalCount" : False
-        }
-        if self.env == 'local':
-            headers = {
-                "authorization" : "30210c670811c191ea2286632682cdcc18566a4892462bb98a1c603f56d22150"
-            }
-        if self.env == 'staging':
-            headers = {
-                "authorization" : "15c76cdaa958ca537146395d612fbd2fdc52f181e852c1ba7943f8cd72c36f8f"
-            }
-        if self.env == 'production':
-            headers = {
-                "authorization" : "0dd9def6a8a5db75a22e7d83adf9a46e8829c6da6f64c7516dc797ba64506228"
-            }
-        bizfriendly_url = self.api_url[0:-4] #trim off '/api'
-        r = requests.post(bizfriendly_url+'/check_for_new', data=data, headers=headers)
-        r = r.json()
-        # {u'original_count': 207, u'attribute_to_display': False, u'attribute_to_remember': False, u'timeout': False, u'new_object_added': False}
-        assert(isinstance(r["original_count"],int))
-        assert(r["attribute_to_display"] == False)
-        assert(r["attribute_to_remember"] == False)
-        assert(r["timeout"] == False)
-        assert(r["new_object_added"] == False)
+    # def test_check_for_new_no_original_count(self):
+    #     data = {
+    #         "currentStep[id]" : 0,
+    #         "currentStep[name]" : "test Step",
+    #         "currentStep[stepType]" : "check_for_new",
+    #         "currentStep[stepNumber]" : 1,
+    #         "currentStep[stepText]" : "Test Step Text",
+    #         "currentStep[triggerEndpoint]" : "https://graph.facebook.com/me/accounts?fields=name&access_token=",
+    #         "currentStep[triggerCheck]" : "data",
+    #         "currentStep[triggerValue]" : "name",
+    #         "currentStep[thingToRemember]" : "Test Thing to remember",
+    #         "currentStep[feedback]" : "Test Feedback",
+    #         "currentStep[nextStepNumber]" : "Test Next Step Number",
+    #         "currentStep[stepState]" : "unfinished",
+    #         "lessonName" : "Test Lesson Name",
+    #         "lessonId" : 0,
+    #         "thirdPartyService" : "facebook",
+    #         "originalCount" : False
+    #     }
+    #     if self.env == 'local':
+    #         headers = {
+    #             "authorization" : "30210c670811c191ea2286632682cdcc18566a4892462bb98a1c603f56d22150"
+    #         }
+    #     if self.env == 'staging':
+    #         headers = {
+    #             "authorization" : "15c76cdaa958ca537146395d612fbd2fdc52f181e852c1ba7943f8cd72c36f8f"
+    #         }
+    #     if self.env == 'production':
+    #         headers = {
+    #             "authorization" : "0dd9def6a8a5db75a22e7d83adf9a46e8829c6da6f64c7516dc797ba64506228"
+    #         }
+    #     bizfriendly_url = self.api_url[0:-4] #trim off '/api'
+    #     r = requests.post(bizfriendly_url+'/check_for_new', data=data, headers=headers)
+    #     r = r.json()
+    #     # {u'original_count': 207, u'attribute_to_display': False, u'attribute_to_remember': False, u'timeout': False, u'new_object_added': False}
+    #     assert(isinstance(r["original_count"],int))
+    #     assert(r["attribute_to_display"] == False)
+    #     assert(r["attribute_to_remember"] == False)
+    #     assert(r["timeout"] == False)
+    #     assert(r["new_object_added"] == False)
 
-    def test_check_for_new_with_original_count(self):
-        data = {
-            "currentStep[id]" : 0,
-            "currentStep[name]" : "test Step",
-            "currentStep[stepType]" : "check_for_new",
-            "currentStep[stepNumber]" : 1,
-            "currentStep[stepText]" : "Test Step Text",
-            "currentStep[triggerEndpoint]" : "https://graph.facebook.com/me/accounts?fields=name&access_token=",
-            "currentStep[triggerCheck]" : "data",
-            "currentStep[triggerValue]" : "name",
-            "currentStep[thingToRemember]" : "id",
-            "currentStep[feedback]" : "Test Feedback",
-            "currentStep[nextStepNumber]" : "Test Next Step Number",
-            "currentStep[stepState]" : "unfinished",
-            "lessonName" : "Test Lesson Name",
-            "lessonId" : 0,
-            "thirdPartyService" : "facebook",
-            "originalCount" : 1
-        }
-        if self.env == 'local':
-            headers = {
-                "authorization" : "30210c670811c191ea2286632682cdcc18566a4892462bb98a1c603f56d22150"
-            }
-        if self.env == 'staging':
-            headers = {
-                "authorization" : "15c76cdaa958ca537146395d612fbd2fdc52f181e852c1ba7943f8cd72c36f8f"
-            }
-        if self.env == 'production':
-            headers = {
-                "authorization" : "0dd9def6a8a5db75a22e7d83adf9a46e8829c6da6f64c7516dc797ba64506228"
-            }
-        bizfriendly_url = self.api_url[0:-4] #trim off '/api'
-        r = requests.post(bizfriendly_url+'/check_for_new', data=data, headers=headers)
-        r = r.json()
-        # {u'original_count': 207, u'attribute_to_display': False, u'attribute_to_remember': False, u'timeout': False, u'new_object_added': False}
-        assert(isinstance(r["original_count"],int))
-        assert(isinstance(r["attribute_to_display"],unicode))
-        assert(isinstance(r["attribute_to_remember"],unicode))
-        assert(r["timeout"] == False)
-        assert(r["new_object_added"] == True)
+    # def test_check_for_new_with_original_count(self):
+    #     data = {
+    #         "currentStep[id]" : 0,
+    #         "currentStep[name]" : "test Step",
+    #         "currentStep[stepType]" : "check_for_new",
+    #         "currentStep[stepNumber]" : 1,
+    #         "currentStep[stepText]" : "Test Step Text",
+    #         "currentStep[triggerEndpoint]" : "https://graph.facebook.com/me/accounts?fields=name&access_token=",
+    #         "currentStep[triggerCheck]" : "data",
+    #         "currentStep[triggerValue]" : "name",
+    #         "currentStep[thingToRemember]" : "id",
+    #         "currentStep[feedback]" : "Test Feedback",
+    #         "currentStep[nextStepNumber]" : "Test Next Step Number",
+    #         "currentStep[stepState]" : "unfinished",
+    #         "lessonName" : "Test Lesson Name",
+    #         "lessonId" : 0,
+    #         "thirdPartyService" : "facebook",
+    #         "originalCount" : 1
+    #     }
+    #     if self.env == 'local':
+    #         headers = {
+    #             "authorization" : "30210c670811c191ea2286632682cdcc18566a4892462bb98a1c603f56d22150"
+    #         }
+    #     if self.env == 'staging':
+    #         headers = {
+    #             "authorization" : "15c76cdaa958ca537146395d612fbd2fdc52f181e852c1ba7943f8cd72c36f8f"
+    #         }
+    #     if self.env == 'production':
+    #         headers = {
+    #             "authorization" : "0dd9def6a8a5db75a22e7d83adf9a46e8829c6da6f64c7516dc797ba64506228"
+    #         }
+    #     bizfriendly_url = self.api_url[0:-4] #trim off '/api'
+    #     r = requests.post(bizfriendly_url+'/check_for_new', data=data, headers=headers)
+    #     r = r.json()
+    #     # {u'original_count': 207, u'attribute_to_display': False, u'attribute_to_remember': False, u'timeout': False, u'new_object_added': False}
+    #     assert(isinstance(r["original_count"],int))
+    #     assert(isinstance(r["attribute_to_display"],unicode))
+    #     assert(isinstance(r["attribute_to_remember"],unicode))
+    #     assert(r["timeout"] == False)
+    #     assert(r["new_object_added"] == True)
 
     def test_post_existing_category(self):
         data = {

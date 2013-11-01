@@ -92,6 +92,7 @@ class Step(db.Model):
     step_number = db.Column(db.Integer, nullable=False)
     step_text = db.Column(db.Unicode)
     trigger_endpoint = db.Column(db.Unicode)
+    place_in_collection = db.Column(db.Unicode)
     trigger_check = db.Column(db.Unicode)
     trigger_value = db.Column(db.Unicode)
     thing_to_remember = db.Column(db.Unicode)
@@ -102,11 +103,12 @@ class Step(db.Model):
     lesson = db.relationship('Lesson', backref=db.backref('steps', lazy='dynamic'))
     creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
 
-    def __init__(self, step_number=None, step_type=None, step_text=None, trigger_endpoint=None, trigger_check=None, trigger_value=None, thing_to_remember=None, feedback=None, next_step_number=None, lesson_id=None, creator_id=None):
+    def __init__(self, step_number=None, step_type=None, step_text=None, trigger_endpoint=None, place_in_collection=None, trigger_check=None, trigger_value=None, thing_to_remember=None, feedback=None, next_step_number=None, lesson_id=None, creator_id=None):
         self.step_number = step_number
         self.step_type = step_type
         self.step_text = step_text
         self.trigger_endpoint = trigger_endpoint
+        self.place_in_collection = place_in_collection
         self.trigger_check = trigger_check
         self.trigger_value = trigger_value
         self.thing_to_remember = thing_to_remember
@@ -162,6 +164,18 @@ class Bf_user(db.Model):
         for connection in self.connections:
             if connection.service == service:
                 return requests.get(req_url + connection.access_token, headers={'User-Agent': 'Python'})
+
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return unicode(self.id)
 
 class UserLesson(db.Model):
     # Attributes

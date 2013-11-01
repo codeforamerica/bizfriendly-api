@@ -104,6 +104,7 @@ def check_for_new():
         path_for_objects = request.form['currentStep[triggerCheck]'].split(',')
     path_for_attribute_to_display = request.form['currentStep[triggerValue]'].split(',')
     path_for_attribute_to_remember = request.form['currentStep[thingToRemember]'].split(',')
+    place_in_collection = request.form['currentStep[placeInCollection]']
     original_count = autoconvert(request.form['originalCount'])
     # If original_count is false in post data, then just return the count of objects at the endpoint.
     # original_count can be 0 so check not int instead of False
@@ -123,7 +124,7 @@ def check_for_new():
 
     #  Check api_resource_url every two seconds for a new addition at path_of_resource_to_check
     timer = 0
-    while timer < 60:
+    while timer < 28:
         time.sleep(2)
         timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
@@ -141,23 +142,18 @@ def check_for_new():
     else:
         our_response["timeout"] = False
     # Facebook pages are added to the end of the list.
-    if third_party_service == 'facebook':
+    if place_in_collection == 'last':
         the_new_resource = resource.pop()
     # Foursquare has new tips as the first in the list.
-    if third_party_service == 'foursquare':
+    if place_in_collection == 'first':
         the_new_resource = resource.pop(0)
-    # Trello calls check_for_new twice
-    if third_party_service == 'trello':
-        step_number = autoconvert(request.form['currentStep[stepNumber]'])
-        if step_number == 3:
-            # Need to check timestamps of trello boards to find new.
-            # Sort so newest is first in the list.
+    # Foursquare lists have the new list second, after the default to do list.
+    if place_in_collection == 'second':
+        the_new_resource = resource.pop(1)
+    if place_in_collection == 'alphabetical':
+        if third_party_service == "trello":
             resource.sort(key=lambda board : board["dateLastView"], reverse=True)
             the_new_resource = resource.pop(0)
-        if step_number == 5:
-            # New cards are at the end of the list
-            the_new_resource = resource.pop()
-
 
     # Return an attribute to display if its not blank.
     if path_for_attribute_to_display[0]:
@@ -200,7 +196,7 @@ def check_if_attribute_exists():
     
     # Check api_resource_url every two seconds for a value
     timer = 0
-    while timer < 60:
+    while timer < 28:
         time.sleep(2)
         timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
@@ -256,7 +252,7 @@ def check_attribute_for_value():
     path_for_attribute_to_display = request.form['currentStep[thingToRemember]'].split(',')
 
     timer = 0
-    while timer < 60:
+    while timer < 28:
         time.sleep(2)
         timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
@@ -320,7 +316,7 @@ def check_attribute_for_update():
         return json.dumps(our_response)
 
     timer = 0
-    while timer < 60:
+    while timer < 28:
         time.sleep(2)
         timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
@@ -676,3 +672,59 @@ def status():
     response["dependencies"] = ["S3", "Mailgun"]
     response = make_response(json.dumps(response))
     return response
+
+@app.route("/new_content_email", methods=["POST"])
+def new_content_email():
+    # ToDo: Change staging to production
+    admins = Bf_user.query.filter_by(role="admin")
+    new_content = request.form
+    creator = Bf_user.query.filter_by(id=new_content["creator_id"]).first()
+    if "category_id" in new_content:
+        category = Category.query.filter_by(id=new_content["category_id"]).first()
+        service = Service.query.filter_by(name=new_content["name"]).first()
+    if "service_id" in new_content:
+        service = Service.query.filter_by(id=new_content["service_id"]).first()
+        category = Category.query.filter_by(id=service.category.id).first()
+    subject = "New "+new_content["state"]+" content Added to BizFriend.ly"
+    html = "<p>Name: "+new_content["name"]+"</p>"
+    if "category_id" in new_content:
+        html += '<p>Service Link: <a href="http://staging.bizfriend.ly/service.html?'+str(service.id)+'">http://staging.bizfriend.ly/service.html?'+str(service.id)+'</a></p>'
+    if "service_id" in new_content:
+        html += '<p>Lesson Link: <a href="http://staging.bizfriend.ly/instructions.html?'+new_content["id"]+'">http://staging.bizfriend.ly/instructions.html?'+new_content["id"]+'</a></p>'
+    if "url" in new_content:
+        html += "<p>Url: "+new_content["url"]+"</p>"
+    if "description" in new_content:
+        html += "<p>Description: "+new_content["description"]+"</p>"
+    if "short_description" in new_content:
+        html += "<p>Short Descrption: "+new_content["short_description"]+"</p>"
+    if "long_description" in new_content:
+        html += "<p>Long Descrption: "+new_content["long_description"]+"</p>"
+    if "additional_resources" in new_content:
+        html += "<p>Additional Resources: "+new_content["additional_resources"]+"</p>"
+    if "tips" in new_content:
+        html += "<p>Tips: "+new_content["tips"]+"</p>"
+    if "icon" in new_content:
+        html += "<p>Icon: <img src="+new_content["icon"]+"></p>"
+    if "media" in new_content:
+        html += "<p>Media: "+new_content["media"]+"</p>"
+    if "category_id" in new_content:
+        html += "<p>Skill: "+category.name+"</p>"
+    if "service_id" in new_content:
+        html += "<p>Skill: "+category.name+"</p>"
+        html += "<p>Service: "+service.name+"</p>"
+
+    html += "<p>Created by: "+creator.name+", "+creator.email+"</p>"
+    html += "<br>"
+    html += "<p>You're getting this email because you are an Admin for BizFriend.ly</p>"
+    for admin in admins:
+        response = requests.post(
+            # Production app14961102.mailgun.org
+            # Staging app17090450.mailgun.org
+            "https://api.mailgun.net/v2/app17090450.mailgun.org/messages",
+            auth=("api", app.config['MAIL_GUN_KEY']),
+            data={"from": "Andrew Hyder <andrewh@codeforamerica.org>",
+                  "to": admin.email,
+                  "subject": subject,
+                  "html": html})
+        print response.text
+    return response.text
