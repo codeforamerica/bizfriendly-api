@@ -511,37 +511,49 @@ def create_connection():
 @app.route('/record_step', methods=['POST'])
 def record_step():
     response = {}
-    lesson_id = request.form['lessonId']
-    step_id = request.form['currentStep[id]']
+    current_lesson_id = request.form['currentLessonId']
+    current_step_id = request.form['currentStepId']
+
     # Require Authorization header for this endpoint
     if 'Authorization' in request.headers:
         htc_access = request.headers['Authorization']
     else:
         response['error'] = 'Authorization required'
         return make_response(json.dumps(response), 401)
+
+    # Get user, lesson, step
     current_user = Bf_user.query.filter_by(access_token=htc_access).first()
-    cur_less = Lesson.query.filter_by(id=lesson_id).first()
-    user_less = UserLesson(start_dt=datetime.now())
-    # Already started the lesson, just alter recent step
-    for lesson in current_user.lessons_completed:
-        if lesson.lesson_id == cur_less.id:
-            if step_id > lesson.recent_step:
-                lesson.recent_step = step_id
+    current_lesson = Lesson.query.filter_by(id=current_lesson_id).first()
+    current_step = Step.query.filter_by(id=current_step_id).first()
+
+    # If already started the lesson, just alter recent step
+    for user_lesson in current_user.lessons_completed:
+        if user_lesson.lesson_id == current_lesson.id:
+            # Save the farthest step they get to.
+            if current_step.step_number > user_lesson.recent_step_number:
+                user_lesson.recent_step_number = current_step.step_number
+                user_lesson.recent_step_id = current_step.id
             # If final step in lesson, update end_dt
-            step_count = max([step.step_number for step in cur_less.steps])
-            if Step.query.get(step_id).step_number == step_count:
-                lesson.end_dt = datetime.now()
+            step_count = max([step.step_number for step in current_lesson.steps])
+            if current_step.step_number == step_count:
+                user_lesson.end_dt = datetime.now()
+                user_lesson.completed = True
             db.session.commit()
+            response['message'] = "New step recorded."
             response = make_response(json.dumps(response), 200)
             response.headers['content-type'] = 'application/json'
             return response
+
     # New to the lesson, append it to user lesson association
-    if current_user and cur_less:
-        cur_less.recent_step = step_id
-        user_less.lesson = cur_less
-        current_user.lessons_completed.append(user_less)
+    if current_user and current_lesson:
+        user_lesson = UserLesson(start_dt=datetime.now())
+        current_lesson.recent_step_id = current_step.id
+        current_lesson.recent_step_number = current_step.step_number
+        user_lesson.lesson = current_lesson
+        current_user.lessons_completed.append(user_lesson)
         db.session.commit()
         response['status'] = 200
+        response['message'] = "New lesson and step recorded."
     else:
         response['status'] = 404
         response['error'] = "Unable to save lesson state."

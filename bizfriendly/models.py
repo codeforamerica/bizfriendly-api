@@ -180,19 +180,23 @@ class Bf_user(db.Model):
 class UserLesson(db.Model):
     # Attributes
     __tablename__ = 'user_to_lesson'
-    recent_step = db.Column(db.Integer, db.ForeignKey('step.id'))
+    recent_step_id = db.Column(db.Integer, db.ForeignKey('step.id'))
+    recent_step_number = db.Column(db.Integer)
     start_dt = db.Column(db.DateTime)
     end_dt = db.Column(db.DateTime, nullable=True)
+    completed = db.Column(db.Boolean)
     # Relationships
     user_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'), primary_key=True)
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), primary_key=True)
     lesson = db.relationship('Lesson')
     user = db.relationship('Bf_user')
 
-    def __init__(self, start_dt=None, end_dt=None, recent_step=None):
-        self.recent_step = recent_step
+    def __init__(self, start_dt=None, end_dt=None, recent_step_id=None, recent_step_number=None):
+        self.recent_step_id = recent_step_id
+        self.recent_step_number = recent_step_number
         self.start_dt = start_dt 
         self.end_dt = end_dt
+        self.completed = False
 
     def __repr__(self):
         return "User_to_lesson user_id: %s, lesson_id: %s" % (self.user_id, self.lesson_id)
