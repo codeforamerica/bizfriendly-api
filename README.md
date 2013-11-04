@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/codeforamerica/bizfriendly-api.png?branch=staging)](https://travis-ci.org/codeforamerica/bizfriendly-api)
+[![Build Status](https://travis-ci.org/codeforamerica/bizfriendly-api.png)](https://travis-ci.org/codeforamerica/bizfriendly-api)
 
 BizFriendly API
 =========
