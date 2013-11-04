@@ -744,7 +744,11 @@ def new_content_email():
 @app.route("/<user_id>/is_admin", methods=["GET"])
 def is_admin(user_id):
     user = Bf_user.query.filter_by(id=user_id).first()
-    if user["role"] == "admin":
-        return True
+    response = {}
+    if user.role == "admin":
+        response['response'] = True
+        return make_response(json.dumps(response), 200)
     else:
-        return False
+        response['response'] = False
+        return make_response(json.dumps(response), 200)
+
