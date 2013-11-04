@@ -687,7 +687,6 @@ def status():
 
 @app.route("/new_content_email", methods=["POST"])
 def new_content_email():
-    # ToDo: Change staging to production
     admins = Bf_user.query.filter_by(role="admin")
     new_content = request.form
     creator = Bf_user.query.filter_by(id=new_content["creator_id"]).first()
@@ -700,9 +699,9 @@ def new_content_email():
     subject = "New "+new_content["state"]+" content Added to BizFriend.ly"
     html = "<p>Name: "+new_content["name"]+"</p>"
     if "category_id" in new_content:
-        html += '<p>Service Link: <a href="http://staging.bizfriend.ly/service.html?'+str(service.id)+'">http://staging.bizfriend.ly/service.html?'+str(service.id)+'</a></p>'
+        html += '<p>Service Link: <a href="http://bizfriend.ly/service.html?'+str(service.id)+'">http://bizfriend.ly/service.html?'+str(service.id)+'</a></p>'
     if "service_id" in new_content:
-        html += '<p>Lesson Link: <a href="http://staging.bizfriend.ly/instructions.html?'+new_content["id"]+'">http://staging.bizfriend.ly/instructions.html?'+new_content["id"]+'</a></p>'
+        html += '<p>Lesson Link: <a href="http://bizfriend.ly/instructions.html?'+new_content["id"]+'">http://bizfriend.ly/instructions.html?'+new_content["id"]+'</a></p>'
     if "url" in new_content:
         html += "<p>Url: "+new_content["url"]+"</p>"
     if "description" in new_content:
@@ -732,7 +731,7 @@ def new_content_email():
         response = requests.post(
             # Production app14961102.mailgun.org
             # Staging app17090450.mailgun.org
-            "https://api.mailgun.net/v2/app17090450.mailgun.org/messages",
+            "https://api.mailgun.net/v2/app14961102.mailgun.org/messages",
             auth=("api", app.config['MAIL_GUN_KEY']),
             data={"from": "Andrew Hyder <andrewh@codeforamerica.org>",
                   "to": admin.email,
