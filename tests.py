@@ -231,5 +231,17 @@ class bf_api_tester(unittest.TestCase):
         r = requests.put(self.api_url+'/v1/categories/'+test_category_id, data=json.dumps(data), headers=headers)
         assert(r.status_code == 200)
 
+    def test_new_content_email(self):
+        newCategory = {
+          "name" : "Testing New Skill",
+          "description" : "Testing new skill description.",
+          "state" : "draft",
+          "creator_id" : 1
+        }
+        bizfriendly_url = self.api_url[0:-4] #trim off '/api'
+        r = requests.post(bizfriendly_url+"/new_content_email", newCategory)
+        r = r.json()
+        assert r["message"] = "Queued. Thank you."
+
 if __name__ == '__main__':
     unittest.main()
