@@ -8,6 +8,65 @@ BizFriendly teaches you how to use the internet to increase your quality of life
 ## <a name="about"></a>About
 This is the API that powers the various BizFriendly applications.
 
+## Made in Kansas City
+
+<pre>
+
+                     `..----..`                    
+                 .-://////////:-.                 
+               .:////////////////:.               
+              -////////////////////-              
+             -////////-....-////////-             
+            `://////:`      `://////:`            
+            .///////.        .///////.            
+            `///////-       `:///////`            
+  `-:::-.    -///////:`    `:///////-    .::::-`  
+  ://////-    :///////:`  `:///////-    -//////:  
+  :///////-    -///////: `:///////-    -///////:  
+  `:///////:    -/////:`.:///////-    :///////:`  
+   `:///////:`   .///:`.////////-   `:///////:`   
+    `:///////:`   .::`.////////-   `:///////:`    
+     `:///////:`   ``.////////-   `:///////:`     
+      `:///////:.   .////////-   `:///////:`      
+        -///////:. -////////-`. `:///////:`       
+        `:////////:////////-`:/-:///////:`        
+          :///////////////.`://////////:`         
+           -/////////////.`://////////:           
+            -///////////- ://////////:            
+             -/////////-  `:////////-`            
+              -///////.    .://////:              
+               `.---.`      `.----.               
+                                                  
+
+
+       oyyyyyyyyyyy+          .yyyyyyyyyyyy       
+       ``:yyyyyyy-``       ``` ```osyyyyyo:`      
+          oyyyyyo`:/+ossyyyyyyyysso+////-+yy/`    
+          oyyyyyo.yyyyyyyyyyyyyyyyyyyyyyo/+yyy/`  
+          oyyyyyo.yyo+/:-..`.//////+oyyyyyyyyyyy/`
+       .+-oyyyyyo`.       `/yyyyyy+`  .:oyyyyyyys:
+     `oyy-oyyyyyo       `/yyyyyyo.       `:oyys:  
+    :yyyy-oyyyyyo     `/yyyyyyo.            .-    
+   /yyyyy-oyyyyyo   `/yyyyyyo.                    
+  :yyyyy/ oyyyyyo `/yyyyyyo.                      
+ `yyyyy+  oyyyyyo/yyyyyyy/                        
+ /yyyyy`  oyyyyyyyyyyyyyyyo.                      
+:yyyyys   oyyyyyyyyyoyyyyyyy/`                    
+.yyyyy+   oyyyyyyy+. .oyyyyyys:                   
+ /yyyys   oyyyyys`     -syyyyyyo.                 
+ `syyyy:  oyyyyyo        /yyyyyyy+`               
+  -yyyyy- oyyyyyo         `+yyyyyyy:              
+   -yyyyy:.syyyyo           -syyyyyys.         ./-
+    .syyyyo-/yyyo             :yyyyyyy+`     `/yy/
+      /yyyyyo-:++              `+yyyyyyy:  `/yyyy:
+       `/syyyys/.                .oyyyyyys-/ys+-.`
+          -+syyyyyo/-.`           `:syyyyyy+-     
+          o+:-:+syyyyyyyssooooossyyo./yyyyyyy/    
+       ``.syyys+:--::/+oossssssoo+/:-`.syyyyyys-` 
+       oyyyyyyyyyyy+                :yyyyyyyyyyyy/
+
+</pre>
+
 ## <a name="demo"></a>Demo
 Some example API calls:
 	`http://app.bizfriend.ly/api/v1/categories`
