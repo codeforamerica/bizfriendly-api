@@ -241,7 +241,7 @@ class bf_api_tester(unittest.TestCase):
         bizfriendly_url = self.api_url[0:-4] #trim off '/api'
         r = requests.post(bizfriendly_url+"/new_content_email", newCategory)
         r = r.json()
-        assert r["message"] = "Queued. Thank you."
+        assert r["message"] == "Queued. Thank you."
 
 if __name__ == '__main__':
     unittest.main()
