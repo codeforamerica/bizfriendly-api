@@ -740,3 +740,11 @@ def new_content_email():
                   "html": html})
         print response.text
     return response.text
+
+@app.route("/<user_id>/is_admin", methods=["GET"])
+def is_admin(user_id):
+    user = Bf_user.query.filter_by(id=user_id).first()
+    if user["role"] == "admin":
+        return True
+    else:
+        return False
