@@ -5,3 +5,5 @@ install: pip install -r requirements.txt --use-mirrors
 env: API_URL="http://app.bizfriend.ly/api" ENV="production"
 # env: API_URL="http://app-staging.bizfriend.ly/api" ENV="staging"
 script: python tests.py
+notifications:
+  webhooks: http://cfa-project-monitor.herokuapp.com/projects/2b40577c-2e35-4893-affa-c7fe5cfbe6b5/status
