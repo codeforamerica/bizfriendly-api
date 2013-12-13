@@ -447,6 +447,7 @@ def htc_signup():
 
 @app.route('/signin', methods=['POST'])
 def htc_signin():
+    print "Running signin code"
     user_email = request.form['email']
     print user_email
     user_password = request.form['password']
