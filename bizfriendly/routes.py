@@ -452,9 +452,13 @@ def htc_signup():
 @app.route('/signin', methods=['POST'])
 def htc_signin():
     print "Running signin code"
+    response = make_response(json.dumps(request),200)
+    return response
     print request.data
+    print request.args
+    print request.form
     # import pdb; pdb.set_trace()
-    user_email = request.form['email']
+    user_email = request.data['email']
     print user_email
     print dir(request)
     user_password = request.form['password']
