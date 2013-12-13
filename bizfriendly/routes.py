@@ -8,6 +8,10 @@ import os, requests, json, time, re, boto, random
 from boto.s3.key import Key
 # from PIL import Image
 
+import logging
+logger = logging.getLogger(__file__)
+logger.warn('here be bugs')
+
 
 
 # Helper Functions --------------------------------------------------------
