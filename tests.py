@@ -243,5 +243,13 @@ class bf_api_tester(unittest.TestCase):
         r = r.json()
         assert r["message"] == "Queued. Thank you."
 
+    def test_signin_bad_info(self):
+        bad_user = {"email" : "andrewh@codeforamerica.org", "password" : "1234"}
+        bizfriendly_url = self.api_url[0:-4] #trim off '/api'
+        r = requests.post(bizfriendly_url+"/signin", bad_user)
+        assert r.status_code == 401
+        r = r.json()
+        assert r["error"] == "Couldn't find your email and password."
+
 if __name__ == '__main__':
     unittest.main()
