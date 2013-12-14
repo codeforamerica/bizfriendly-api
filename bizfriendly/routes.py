@@ -460,7 +460,7 @@ def htc_signin():
     
     # All other browsers post as a form 
     if request.form:
-        user_email = request.data['email']
+        user_email = request.form['email']
         user_password = request.form['password']
     
     response = {}
