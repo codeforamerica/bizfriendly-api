@@ -455,7 +455,13 @@ def htc_signin():
     # response = make_response(json.dumps(request),200)
     # return response
     print request.data
-    
+    match_group = re.match("email=(.+)&password=(.+)", request.data)
+    user_email = match_group(1)
+    user_password = match_group(2)
+    print user_email
+    print user_password
+
+
     print request.args
     print request.form
     return "BEAUTIFUL"
