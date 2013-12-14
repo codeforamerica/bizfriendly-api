@@ -452,8 +452,8 @@ def htc_signup():
 @app.route('/signin', methods=['POST'])
 def htc_signin():
     print "Running signin code"
-    response = make_response(json.dumps(request),200)
-    return response
+    # response = make_response(json.dumps(request),200)
+    # return response
     print request.data
     print request.args
     print request.form
