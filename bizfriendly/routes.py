@@ -451,48 +451,41 @@ def htc_signup():
 
 @app.route('/signin', methods=['POST'])
 def htc_signin():
-    print "Running signin code"
-    # response = make_response(json.dumps(request),200)
-    # return response
-    print request.data
-    match = re.match("email=(.+)&password=(.+)", request.data)
-    user_email = match.group(1)
-    user_password = match.group(2)
-    print user_email
-    print user_password
+    # If request is from ie9, the info comes in raw.
+    if request.data:
+        ie9_data = request.data.replace('%40','@')
+        match = re.match("email=(.+)&password=(.+)", ie9_data)
+        user_email = match.group(1)
+        user_password = match.group(2)
+    
+    # All other browsers post as a form 
+    if request.form:
+        user_email = request.data['email']
+        user_password = request.form['password']
+    
+    response = {}
 
+    # Validate emails
+    if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", user_email):
+        response['error'] = 'That email doesn\'t look right.'
+        response = make_response(json.dumps(response), 401)
+        response.headers['content-type'] = 'application/json'
+        return response
 
-    print request.args
-    print request.form
-    return "BEAUTIFUL"
-    # import pdb; pdb.set_trace()
-    # user_email = request.data['email']
-    # print user_email
-    # print dir(request)
-    # user_password = request.form['password']
-    # response = {}
-
-    # # Validate emails
-    # if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", user_email):
-    #     response['error'] = 'That email doesn\'t look right.'
-    #     response = make_response(json.dumps(response), 401)
-    #     response.headers['content-type'] = 'application/json'
-    #     return response
-
-    # current_user = Bf_user.query.filter_by(email=user_email).first()
-    # if current_user and current_user.check_pw(user_password):
-    #     # User is valid, return credentials
-    #     response['access_token'] = current_user.access_token
-    #     response['token_type'] = "bearer"
-    #     response['email'] = current_user.email
-    #     response['name'] = current_user.name
-    #     response['id'] = current_user.id
-    #     response = make_response(json.dumps(response),200)
-    # else:
-    #     response['error'] = "Couldn't find your email and password."
-    #     response = make_response(json.dumps(response),401)
-    # response.headers['content-type'] = 'application/json'
-    # return response
+    current_user = Bf_user.query.filter_by(email=user_email).first()
+    if current_user and current_user.check_pw(user_password):
+        # User is valid, return credentials
+        response['access_token'] = current_user.access_token
+        response['token_type'] = "bearer"
+        response['email'] = current_user.email
+        response['name'] = current_user.name
+        response['id'] = current_user.id
+        response = make_response(json.dumps(response),200)
+    else:
+        response['error'] = "Couldn't find your email and password."
+        response = make_response(json.dumps(response),401)
+    response.headers['content-type'] = 'application/json'
+    return response
 
 
 @app.route('/create_connection', methods=['POST'])
