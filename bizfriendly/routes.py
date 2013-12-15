@@ -429,6 +429,7 @@ def htc_signup():
         auth=("api", app.config['MAIL_GUN_KEY']),
         data={"from": "Andrew Hyder <andrewh@codeforamerica.org>",
               "to": [user_email],
+              "cc": "Kansas City <kansascity@codeforamerica.org>"
               "subject": subject,
               "html": html})
 
