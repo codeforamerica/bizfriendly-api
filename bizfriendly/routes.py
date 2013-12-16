@@ -449,6 +449,7 @@ def htc_signup():
 def htc_signin():
     # If request is from ie9, the info comes in raw.
     if request.data:
+        print "DATA"
         ie9_data = request.data.replace('%40','@')
         match = re.match("email=(.+)&password=(.+)", ie9_data)
         user_email = match.group(1)
@@ -456,6 +457,7 @@ def htc_signin():
     
     # All other browsers post as a form 
     if request.form:
+        print "FORM"
         user_email = request.form['email'].lower()
         user_password = request.form['password']
     
