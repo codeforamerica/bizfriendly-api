@@ -536,8 +536,8 @@ def record_step():
     # If request is from ie9, the info comes in raw.
     if request.data:
         match = re.match("currentStepId=(.+)&currentLessonId=(.+)&auth=(.*)", request.data)
-        current_lesson_id = match.group(1)
-        current_step_id = match.group(2)
+        current_step_id = match.group(1)
+        current_lesson_id = match.group(2)
         htc_access = match.group(3)
 
     if request.form:
@@ -546,7 +546,6 @@ def record_step():
         htc_access = request.form['auth']
 
     response = {}
-
 
     # Get user, lesson, step
     current_user = Bf_user.query.filter_by(access_token=htc_access).first()
