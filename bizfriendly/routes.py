@@ -388,9 +388,21 @@ def get_attributes():
 
 @app.route('/signup', methods=['POST'])
 def htc_signup():
-    user_email = request.form['email'].lower()
-    user_pw = request.form['password']
-    user_name = request.form['name']
+
+    # If request is from ie9, the info comes in raw.
+    if request.data:
+        ie9_data = request.data.replace('%40','@')
+        match = re.match("name=(.*)&email=(.+)&password=(.+)", ie9_data)
+        user_name = match.group(1)
+        user_email = match.group(2).lower()
+        user_password = match.group(3)
+    
+    # All other browsers post as a form 
+    if request.form:
+        user_email = request.form['email'].lower()
+        user_password = request.form['password']
+        user_name = request.form['name']
+    
     response = {}
 
     # Validate emails
@@ -449,16 +461,13 @@ def htc_signup():
 def htc_signin():
     # If request is from ie9, the info comes in raw.
     if request.data:
-        print request.data
-        print request.headers
         ie9_data = request.data.replace('%40','@')
         match = re.match("email=(.+)&password=(.+)", ie9_data)
-        user_email = match.group(1)
+        user_email = match.group(1).lower()
         user_password = match.group(2)
     
     # All other browsers post as a form 
     if request.form:
-        print "FORM"
         user_email = request.form['email'].lower()
         user_password = request.form['password']
     
