@@ -532,16 +532,21 @@ def create_connection():
 
 @app.route('/record_step', methods=['POST'])
 def record_step():
-    response = {}
-    current_lesson_id = request.form['currentLessonId']
-    current_step_id = request.form['currentStepId']
 
-    # Require Authorization header for this endpoint
-    if 'Authorization' in request.headers:
-        htc_access = request.headers['Authorization']
-    else:
-        response['error'] = 'Authorization required'
-        return make_response(json.dumps(response), 401)
+    # If request is from ie9, the info comes in raw.
+    if request.data:
+        match = re.match("currentLessonId=(.+)&currentStepId=(.+)&auth=(.*)", request.data)
+        current_lesson_id = match.group(1)
+        current_step_id = match.group(2)
+        htc_access = match.group(3)
+
+    if request.form:
+        current_lesson_id = request.form['currentLessonId']
+        current_step_id = request.form['currentStepId']
+        htc_access = request.form['auth']
+
+    response = {}
+
 
     # Get user, lesson, step
     current_user = Bf_user.query.filter_by(access_token=htc_access).first()
