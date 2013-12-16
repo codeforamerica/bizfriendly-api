@@ -412,7 +412,7 @@ def htc_signup():
         response.headers['content-type'] = 'application/json'
         return response
 
-    current_user = Bf_user(user_email, user_pw, user_name)
+    current_user = Bf_user(user_email, user_password, user_name)
     if (Bf_user.query.filter_by(email=user_email).first()):
         response['error'] = 'Someone has already signed up with that email.'
         response = make_response(json.dumps(response), 401)
