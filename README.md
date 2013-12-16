@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/codeforamerica/bizfriendly-api.png)](https://travis-ci.org/codeforamerica/bizfriendly-api)
+[![Coverage Status](https://coveralls.io/repos/codeforamerica/bizfriendly-api/badge.png)](https://coveralls.io/r/codeforamerica/bizfriendly-api)
 
 BizFriendly API
 =========
