@@ -10,6 +10,7 @@ class bf_tests(unittest.TestCase):
     def setUp(self):
         # Set up the database settings
         app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://postgres@localhost/bizfriendly_test'
+        app.config['SECRET_KEY'] = '123456'
         app.config['TESTING'] = True
         db.create_all()
         self.app = app.test_client()
