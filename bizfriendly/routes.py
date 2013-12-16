@@ -535,6 +535,7 @@ def record_step():
 
     # If request is from ie9, the info comes in raw.
     if request.data:
+        print request.data
         match = re.match("currentLessonId=(.+)&currentStepId=(.+)&auth=(.*)", request.data)
         current_lesson_id = match.group(1)
         current_step_id = match.group(2)
