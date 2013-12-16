@@ -62,6 +62,7 @@ def check_for_new():
     if 'Authorization' in request.headers:
         htc_access = request.headers['Authorization']
     else:
+        response = {}
         response['error'] = 'Authorization required'
         return make_response(response, 403)
 
@@ -759,4 +760,3 @@ def is_admin(user_id):
     else:
         response['response'] = False
         return make_response(json.dumps(response), 200)
-
