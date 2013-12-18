@@ -14,9 +14,10 @@ class Category(db.Model):
     name = db.Column(db.Unicode, nullable=False, unique=True)
     description = db.Column(db.Unicode)
     state = db.Column(db.Unicode)
+    created_dt = db.Column(db.DateTime(), default=db.func.now())
     # Realtionships
     creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
-    creator = db.relationship('Bf_user', backref=db.backref('categories', lazy='dynamic')) 
+    creator = db.relationship('Bf_user', backref=db.backref('categories', lazy='dynamic'))
 
     def __init__(self, name=None, description=None, state=None, creator_id=None):
         self.name = name
@@ -39,6 +40,7 @@ class Service(db.Model):
     tips = db.Column(db.Unicode)
     media = db.Column(db.Unicode)
     state = db.Column(db.Unicode)
+    created_dt = db.Column(db.DateTime(), default=db.func.now())
     # Relationships
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     category = db.relationship('Category', backref=db.backref('services', lazy='dynamic'))
@@ -68,6 +70,7 @@ class Lesson(db.Model):
     description = db.Column(db.Unicode)
     ease = db.Column(db.Unicode)
     state = db.Column(db.Unicode)
+    created_dt = db.Column(db.DateTime(), default=db.func.now())
     # Relationships
     service_id = db.Column(db.Integer, db.ForeignKey('service.id'), nullable=False)
     service = db.relationship('Service', backref=db.backref('lessons', lazy='dynamic'))
@@ -98,6 +101,7 @@ class Step(db.Model):
     thing_to_remember = db.Column(db.Unicode)
     feedback = db.Column(db.Unicode)
     next_step_number = db.Column(db.Integer)
+    created_dt = db.Column(db.DateTime(), default=db.func.now())
     # Relationships
     lesson_id = db.Column(db.Integer, db.ForeignKey('lesson.id'), nullable=False)
     lesson = db.relationship('Lesson', backref=db.backref('steps', lazy='dynamic'))
@@ -128,6 +132,7 @@ class Bf_user(db.Model):
     location = db.Column(db.Unicode, nullable=True)
     reset_token = db.Column(db.BigInteger, nullable=True)
     role = db.Column(db.Unicode, nullable=True)
+    created_dt = db.Column(db.DateTime(), default=db.func.now())
     # Relations
     lessons_completed = db.relationship("UserLesson")
     lessons_created = db.relationship("Lesson")
@@ -182,8 +187,8 @@ class UserLesson(db.Model):
     __tablename__ = 'user_to_lesson'
     recent_step_id = db.Column(db.Integer, db.ForeignKey('step.id'))
     recent_step_number = db.Column(db.Integer)
-    start_dt = db.Column(db.DateTime)
-    end_dt = db.Column(db.DateTime, nullable=True)
+    start_dt = db.Column(db.DateTime(timezone=False))
+    end_dt = db.Column(db.DateTime(timezone=False), nullable=True)
     completed = db.Column(db.Boolean)
     # Relationships
     user_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'), primary_key=True)
@@ -206,6 +211,7 @@ class Connection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     service = db.Column(db.Unicode)
     access_token = db.Column(db.Unicode)
+    created_dt = db.Column(db.DateTime(), default=db.func.now())
     # Relationships
     user_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
     user = db.relationship('Bf_user', backref=db.backref('connections', lazy='dynamic'))
