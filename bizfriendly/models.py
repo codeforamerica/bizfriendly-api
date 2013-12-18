@@ -222,37 +222,3 @@ class Connection(db.Model):
 
     def __repr__(self):
         return "Connection user_id: %s, service: %s" % (self.user_id, self.service)
-
-class Rating(db.Model):
-    # Attributes
-    id = db.Column(db.Integer, primary_key=True)
-    lesson_or_step = db.Column(db.Unicode)
-    lesson_or_step_id = db.Column(db.Integer)
-    rating = db.Column(db.Integer)
-    feedback = db.Column(db.Unicode)
-    # Relationships
-    user_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
-    user = db.relationship('Bf_user', backref=db.backref('ratings', lazy='dynamic'))
-
-    def __init__(self, lesson_or_step=lesson_or_step, lesson_or_step_id=lesson_or_step_id, user_id=user_id, rating=rating, feedback=feedback):
-        self.lesson_or_step = lesson_or_step
-        self.lesson_or_step_id = lesson_or_step_id
-        self.user_id = user_id
-        self.rating = rating
-        self.feedback = feedback
-
-class Request(db.Model):
-    # Attributes
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Unicode)
-    description = db.Column(db.Unicode)
-    why = db.Column(db.Unicode)
-    # Relationships
-    creator_id = db.Column(db.Integer, db.ForeignKey('bf_user.id'))
-    creator = db.relationship('Bf_user', backref=db.backref('requests', lazy='dynamic'))
-
-    def __init__(self, name=None, description=None, why=None, creator_id=None):
-        self.name = name
-        self.description = name
-        self.why = why
-        self.creator_id = creator_id

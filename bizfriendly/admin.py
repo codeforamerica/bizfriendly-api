@@ -71,14 +71,9 @@ class UserLessonView(AdminView):
     column_display_pk = True
     column_auto_select_related = True
 
-class RatingView(AdminView):
-    column_display_pk = True
-    column_auto_select_related = True
-
 admin.add_view(CategoryView(Category, db.session))
 admin.add_view(CategoryView(Service, db.session))
 admin.add_view(LessonView(Lesson, db.session))
 admin.add_view(StepView(Step, db.session))
 admin.add_view(Bf_userView(Bf_user, db.session))
 admin.add_view(UserLessonView(UserLesson, db.session))
-admin.add_view(RatingView(Rating,db.session))
