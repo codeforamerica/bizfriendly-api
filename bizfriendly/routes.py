@@ -70,7 +70,7 @@ def check_for_new():
     
     third_party_service = request.form['thirdPartyService']
     
-    if app.config['DEBUG']:
+    if app.settings['DEBUG']:
         if third_party_service == 'facebook':
             our_response = {
                 "attribute_to_display" : "TEST PAGE",
@@ -123,7 +123,7 @@ def check_for_new():
 
     #  Check api_resource_url every two seconds for a new addition at path_of_resource_to_check
     timer = 0
-    while timer < 28:
+    while timer < 28: # Heroku has a timeout of 30 seconds.
         time.sleep(2)
         timer = timer + 2
         resource = current_user.make_authorized_request(third_party_service, resource_url)
@@ -439,7 +439,7 @@ def htc_signup():
 
     requests.post(
         "https://api.mailgun.net/v2/app14961102.mailgun.org/messages",
-        auth=("api", app.config['MAIL_GUN_KEY']),
+        auth=("api", app.settings['MAIL_GUN_KEY']),
         data={"from": "Andrew Hyder <andrewh@codeforamerica.org>",
               "to": [user_email],
               "cc": "Kansas City <kansascity@codeforamerica.org>",
@@ -617,8 +617,8 @@ def image_upload():
     #     response["message"] = "Image too wide."
     #     return make_response(json.dumps(response), 401)
 
-    conn = boto.connect_s3(app.config['AWS_ACCESS_KEY_ID'], app.config['AWS_SECRET_ACCESS_KEY'])
-    mybucket = conn.get_bucket(app.config['S3_BUCKET_NAME'])
+    conn = boto.connect_s3(app.settings['AWS_ACCESS_KEY_ID'], app.settings['AWS_SECRET_ACCESS_KEY'])
+    mybucket = conn.get_bucket(app.settings['S3_BUCKET_NAME'])
     k = Key(mybucket)
     k.key = file.filename
     k.set_contents_from_filename(os.path.join('tmp', file.filename))
@@ -627,7 +627,7 @@ def image_upload():
     return_json = {
         "name": file.filename,
         "size": os.stat('tmp/'+file.filename).st_size,
-        "url": "https://%s.s3.amazonaws.com/%s" % (app.config['S3_BUCKET_NAME'], file.filename)
+        "url": "https://%s.s3.amazonaws.com/%s" % (app.settings['S3_BUCKET_NAME'], file.filename)
     }
     return json.dumps({"files" : [return_json]})
 
@@ -658,7 +658,7 @@ def request_password_reset():
     text += "http://bizfriend.ly/reset-password.html?"+str(current_user.reset_token)
     response = requests.post(
         "https://api.mailgun.net/v2/app14961102.mailgun.org/messages",
-        auth=("api", app.config['MAIL_GUN_KEY']),
+        auth=("api", app.settings['MAIL_GUN_KEY']),
         data={"from": "Andrew Hyder <andrewh@codeforamerica.org>",
               "to": [email],
               "subject": subject,
@@ -758,7 +758,7 @@ def new_content_email():
             # Production app14961102.mailgun.org
             # Staging app17090450.mailgun.org
             "https://api.mailgun.net/v2/app14961102.mailgun.org/messages",
-            auth=("api", app.config['MAIL_GUN_KEY']),
+            auth=("api", app.settings['MAIL_GUN_KEY']),
             data={"from": "Andrew Hyder <andrewh@codeforamerica.org>",
                   "to": admin.email,
                   "subject": subject,
