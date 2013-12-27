@@ -6,6 +6,7 @@ from api import *
 from datetime import datetime
 import os, requests, json, time, re, boto, random
 from boto.s3.key import Key
+from PIL import Image
 
 
 # Helper Functions --------------------------------------------------------
@@ -608,14 +609,23 @@ def image_upload():
     file = request.files['files[]']
     file.save(os.path.join('tmp', file.filename))
 
-    # # Check image size
-    # img = Image.open("tmp/"+file.filename)
-    # # get the image's width and height in pixels
-    # width, height = img.size
-    # if width > 260:
-    #     response = {}
-    #     response["message"] = "Image too wide."
-    #     return make_response(json.dumps(response), 401)
+    # Check image size
+    img = Image.open("tmp/"+file.filename)
+    width, height = img.size
+
+    # Icon uploads should be 30 x 30
+    if 'icon' in request.args.keys():
+        if width > 30 or height > 30:
+            response = {}
+            response["message"] = "Image tooooooo big."
+            return make_response(json.dumps(response), 401)
+
+    # Service images should be 600 x 338
+    if 'service' in request.args.keys():
+        if width > 600 or height > 338:
+            response = {}
+            response["message"] = "Image tooooooo big."
+            return make_response(json.dumps(response), 401)
 
     conn = boto.connect_s3(app.config['AWS_ACCESS_KEY_ID'], app.config['AWS_SECRET_ACCESS_KEY'])
     mybucket = conn.get_bucket(app.config['S3_BUCKET_NAME'])
