@@ -1,4 +1,4 @@
-from flask import request, make_response
+from flask import request, make_response, render_template
 from bizfriendly import app
 from models import *
 from api import *
@@ -612,7 +612,7 @@ def image_upload():
     # Check image size
     img = Image.open("tmp/"+file.filename)
     width, height = img.size
-
+    
     # Icon uploads should be 30 x 30
     if 'icon' in request.args.keys():
         if width > 30 or height > 30:
@@ -786,3 +786,7 @@ def is_admin(user_id):
     else:
         response['response'] = False
         return make_response(json.dumps(response), 200)
+
+@app.route("/proxy.html", methods=["GET"])
+def proxy():
+    return render_template('proxy.html')
