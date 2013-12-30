@@ -627,6 +627,13 @@ def image_upload():
             response["message"] = "Image tooooooo big."
             return make_response(json.dumps(response), 401)
 
+    # Instruction images should be no bigger than 290 x 400
+    if 'instruction' in request.args.keys():
+        if width >= 290 or height >= 400:
+            response = {}
+            response["message"] = "Image tooooooo big."
+            return make_response(json.dumps(response), 401)
+
     conn = boto.connect_s3(app.config['AWS_ACCESS_KEY_ID'], app.config['AWS_SECRET_ACCESS_KEY'])
     mybucket = conn.get_bucket(app.config['S3_BUCKET_NAME'])
     k = Key(mybucket)
