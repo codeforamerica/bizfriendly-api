@@ -15,6 +15,6 @@ manager.create_api(Service, exclude_columns=columns, methods=['GET', 'POST', 'PU
 manager.create_api(Lesson, exclude_columns=columns, methods=['GET', 'POST', 'PUT'], url_prefix=api_version, collection_name='lessons', max_results_per_page=-1)
 manager.create_api(Step, exclude_columns=columns, methods=['GET', 'POST', 'PUT','DELETE'], url_prefix=api_version, collection_name='steps', max_results_per_page=-1)
 columns = ['password','reset_token','access_token','role','connections.access_token']
-manager.create_api(Bf_user, exclude_columns=columns,methods=['GET'], url_prefix=api_version, collection_name='users', max_results_per_page=-1)
+manager.create_api(Bf_user, exclude_columns=columns,methods=['GET','PUT'], url_prefix=api_version, collection_name='users', max_results_per_page=-1)
 columns = ['user.password','user.reset_token','user.access_token','user.role']
 manager.create_api(UserLesson, exclude_columns=columns, methods=['GET'], url_prefix=api_version, collection_name='userlessons', max_results_per_page=-1)

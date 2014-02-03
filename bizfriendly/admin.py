@@ -65,7 +65,7 @@ class StepView(AdminView):
 
 class Bf_userView(AdminView):
     column_display_pk = True
-    column_list = ('id','name','email','business_name','location','role')
+    column_list = ('id','name','email','business_name','business_url','description','linkedin','gplus','twitter','facebook','location','role')
 
 class UserLessonView(AdminView):
     column_display_pk = True

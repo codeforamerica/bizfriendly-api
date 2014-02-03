@@ -129,6 +129,12 @@ class Bf_user(db.Model):
     access_token = db.Column(db.Unicode, nullable=False)
     name = db.Column(db.Unicode, nullable=False)
     business_name = db.Column(db.Unicode, nullable=True)
+    business_url = db.Column(db.Unicode, nullable=True)
+    linkedin = db.Column(db.Unicode, nullable=True)
+    gplus = db.Column(db.Unicode, nullable=True)
+    twitter = db.Column(db.Unicode, nullable=True)
+    facebook = db.Column(db.Unicode, nullable=True)
+    description = db.Column(db.Unicode, nullable=True)
     location = db.Column(db.Unicode, nullable=True)
     reset_token = db.Column(db.BigInteger, nullable=True)
     role = db.Column(db.Unicode, nullable=True)
@@ -142,13 +148,19 @@ class Bf_user(db.Model):
     # def validate_email(self, key, address):
     #     pass
 
-    def __init__(self, email=None, password=None, name=None, business_name=None, location=None, role=None):
+    def __init__(self, email=None, password=None, name=None, business_name=None, business_url=None, linkedin=None, gplus=None, twitter=None, facebook=None, description=None, location=None, role=None):
         self.email = str(email)
         password = str(password)
         self.access_token = hashlib.sha256(str(os.urandom(24))).hexdigest()
         self.password = self.pw_digest(password)
         self.name = name
         self.business_name = business_name
+        self.business_url = business_url
+        self.linkedin = linkedin
+        self.gplus = gplus
+        self.twitter = twitter
+        self.facebook = facebook
+        self.description = description
         self.location = location
         self.role = "user"
 
