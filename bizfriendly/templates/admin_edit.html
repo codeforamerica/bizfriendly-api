@@ -1,0 +1,15 @@
+{% extends "admin/model/edit.html" %}
+
+{% block head %}
+  <script src="//tinymce.cachefly.net/4.1/tinymce.min.js"></script>
+{% endblock head %}
+
+{% block tail %}
+  {{ super() }}
+    <script type="text/javascript">
+    tinymce.init({
+      selector: "#step_text, #feedback, #description, #short_description, #long_description",
+      menubar : false
+   });
+  </script>
+{% endblock tail %}

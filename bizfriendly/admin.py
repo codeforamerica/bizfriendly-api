@@ -42,6 +42,8 @@ def login():
 class AdminView(ModelView):
     def is_accessible(self):
         return current_user.is_authenticated()
+    create_template = 'admin_edit.html'
+    edit_template = 'admin_edit.html'
 
 # ADMIN ------------------------------------------------------------
 admin = Admin(app, name='BizFriend.ly Admin', url='/api/admin')
