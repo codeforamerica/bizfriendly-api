@@ -152,8 +152,13 @@ def check_for_new():
         the_new_resource = resource.pop(1)
     if place_in_collection == 'alphabetical':
         if third_party_service == "trello":
-            resource.sort(key=lambda board : board["dateLastView"], reverse=True)
-            the_new_resource = resource.pop(0)
+            the_new_resource = {
+              'dateLastView' : None
+            }
+            for board in resource:
+                if 'dateLastView' in board.keys():
+                    if board['dateLastView'] > the_new_resource['dateLastView']:
+                        the_new_resource = board
 
     # Return an attribute to display if its not blank.
     if path_for_attribute_to_display[0]:
