@@ -402,17 +402,17 @@ def htc_signup():
         user_name = match.group(1)
         user_email = match.group(2).lower()
         user_password = match.group(3)
-    
-    # All other browsers post as a form 
+
+    # All other browsers post as a form
     if request.form:
         user_email = request.form['email'].lower()
         user_password = request.form['password']
         user_name = request.form['name']
-    
+
     response = {}
 
     # Validate emails
-    if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", user_email):
+    if not re.match("^[a-zA-Z0-9_.+-]+\@[a-zA-Z0-9-]*\.*[a-zA-Z0-9-]+\.+[a-zA-Z0-9]{2,4}$", user_email):
         response['error'] = 'That email doesn\'t look right.'
         response = make_response(json.dumps(response), 401)
         response.headers['content-type'] = 'application/json'
