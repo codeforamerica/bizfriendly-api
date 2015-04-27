@@ -559,25 +559,26 @@ def record_step():
     current_step = Step.query.filter_by(id=current_step_id).first()
 
     # If already started the lesson, just alter recent step
-    for user_lesson in current_user.lessons_completed:
-        if user_lesson.lesson_id == current_lesson.id:
-            # Save the farthest step they get to.
-            if current_step.step_number > user_lesson.recent_step_number:
-                user_lesson.recent_step_number = current_step.step_number
-                user_lesson.recent_step_id = current_step.id
-            # If final step in lesson, update end_dt
-            step_count = max([step.step_number for step in current_lesson.steps])
-            if current_step.step_number == step_count:
-                user_lesson.end_dt = datetime.now()
-                user_lesson.completed = True
-            db.session.commit()
-            response['message'] = "New step recorded."
-            response = make_response(json.dumps(response), 200)
-            response.headers['content-type'] = 'application/json'
-            return response
+    if current_user:
+        for user_lesson in current_user.lessons_completed:
+            if user_lesson.lesson_id == current_lesson.id:
+                # Save the farthest step they get to.
+                if current_step.step_number > user_lesson.recent_step_number:
+                    user_lesson.recent_step_number = current_step.step_number
+                    user_lesson.recent_step_id = current_step.id
+                # If final step in lesson, update end_dt
+                step_count = max([step.step_number for step in current_lesson.steps])
+                if current_step.step_number == step_count:
+                    user_lesson.end_dt = datetime.now()
+                    user_lesson.completed = True
+                db.session.commit()
+                response['message'] = "New step recorded."
+                response = make_response(json.dumps(response), 200)
+                response.headers['content-type'] = 'application/json'
+                return response
 
     # New to the lesson, append it to user lesson association
-    if current_user and current_lesson:
+    elif current_user and current_lesson:
         user_lesson = UserLesson(start_dt=datetime.now())
         current_lesson.recent_step_id = current_step.id
         current_lesson.recent_step_number = current_step.step_number
